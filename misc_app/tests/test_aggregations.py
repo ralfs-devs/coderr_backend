@@ -1,3 +1,5 @@
+"""Unit tests for the aggregation endpoints."""
+
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -5,13 +7,14 @@ from django.contrib.auth import get_user_model
 from reviews_app.models import Reviews
 from offers_app.models import Offers
 
-
 User = get_user_model()
 
 
 class BaseInfoApiTests(APITestCase):
+    """Test suite for the BaseInfoView metrics endpoint."""
 
     def setUp(self):
+        """Sets up test users, offers, and reviews data before each test execution."""
         self.url = reverse('base_info')
 
         self.biz1 = User.objects.create_user(
@@ -37,10 +40,12 @@ class BaseInfoApiTests(APITestCase):
             rating=3, business_user=self.biz2, reviewer=self.cust2)
 
     def test_base_info_success_status(self):
+        """Verifies that the endpoint returns a 200 OK status code."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_base_info_aggregation(self):
+        """Validates that the database values are aggregated and calculated correctly."""
         response = self.client.get(self.url)
 
         self.assertEqual(response.data['review_count'], 3)
@@ -49,6 +54,7 @@ class BaseInfoApiTests(APITestCase):
         self.assertEqual(response.data['offer_count'], 3)
 
     def test_empty_data(self):
+        """Ensures the endpoint gracefully falls back to zeroed values when database tables are empty."""
         Reviews.objects.all().delete()
         Offers.objects.all().delete()
         User.objects.filter(type='business').delete()

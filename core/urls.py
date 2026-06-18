@@ -1,8 +1,8 @@
-"""
-URL configuration for core project.
+"""URL configuration for core project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/6.0/topics/http/urls/
+
 Examples:
 Function views
     1. Add an import:  from my_app import views
@@ -28,7 +28,7 @@ urlpatterns = [
     path('api/', include('reviews_app.api.urls')),
     path('api/', include('misc_app.api.urls')),
 ]
-""" only if DEBUG mode is activated, the URL to static must be activated separately"""
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL,
                           document_root=settings.MEDIA_ROOT)

@@ -1,5 +1,4 @@
-"""
-URL Configuration for User Authentication.
+"""URL Configuration for User Authentication.
 
 This module defines the URL patterns for handling user registration and login requests. 
 It maps specific URL routes to their corresponding class-based views

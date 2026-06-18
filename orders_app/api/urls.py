@@ -1,5 +1,10 @@
+"""
+URL mapping for the orders_app.
+"""
+
 from django.urls import path
 from .views import OrderViewSet, OrderCountView, CompletedOrderCountView
+
 urlpatterns = [
     path('orders/', OrderViewSet.as_view(actions={
          'get': 'list', 'post': 'create'}), name='orders'),

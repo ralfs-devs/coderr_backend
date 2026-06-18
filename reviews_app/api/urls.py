@@ -1,5 +1,10 @@
+"""
+URL mapping for customer reviews concerning business-users.
+"""
+
 from django.urls import path
 from .views import ReviewsViewSet
+
 urlpatterns = [
     path('reviews/', ReviewsViewSet.as_view(actions={
          'get': 'list', 'post': 'create'}), name='reviews'),

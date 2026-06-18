@@ -1,32 +1,31 @@
+"""Database models and query managers establishing customized database structures for core user accounts."""
+
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 
 class CustomUserManager(BaseUserManager):
-    """
-    Manager for the custom User model.
+    """Manager for the custom User model.
 
     Provides helper methods to create regular users and superusers.
     """
 
     def create_user(self, username, email, password, type='customer', **extra_fields):
-        """
-        Creates and saves a User with the given details.
+        """Creates and saves a User instance containing explicit security traits.
 
         Args:
-            username (str): The unique username.
-            email (str): The user's email address.
-            password (str): The user's password.
-            user_type (str, optional): The user's role (default: 'customer').
-            **extra_fields: Additional fields for the User model.
+            username (str): The distinct identifying string handle.
+            email (str): The target mailbox address.
+            password (str): The unhashed source credential string.
+            type (str): The foundational operation profile classification.
+            **extra_fields: Variable configuration mappings passed to schema instances.
 
         Returns:
-            User: The created user instance.
+            User: The freshly generated database entry instance.
 
         Raises:
-            ValueError: If email or username is missing.
+            ValueError: When necessary lookup strings or handles are dropped.
         """
-
         user_type = extra_fields.pop('type', 'customer')
 
         if not email:
@@ -43,8 +42,7 @@ class CustomUserManager(BaseUserManager):
         return user
 
     def create_superuser(self, username, email, password, **extra_fields):
-        """
-        Creates and saves a superuser with the given details.
+        """Creates and saves a superuser with the given details.
 
         Args:
             username (str): The unique username.
@@ -63,8 +61,7 @@ class CustomUserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    """
-    Custom User model extending AbstractBaseUser.
+    """Custom User model extending AbstractBaseUser.
 
     Attributes:
         username (CharField): Unique identifier for the user.
@@ -73,6 +70,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         is_active (BooleanField): Determines if the user account is active.
         is_staff (BooleanField): Determines if the user has staff access.
     """
+
     USER_TYPE_CHOICES = [
         ('customer', 'Customer'),
         ('business', 'Business'),
@@ -92,5 +90,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['email', 'type']
 
     def __str__(self):
-        """Returns the string representation of the user."""
+        """Returns the string representation of the user.
+
+        Returns:
+            str: The unique account identity identifier string.
+        """
         return self.username

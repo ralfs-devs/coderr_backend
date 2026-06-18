@@ -1,7 +1,8 @@
+"""Views for processing API requests and statistical aggregations."""
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from rest_framework import status
 
 from django.db.models import Avg, Count
 from django.contrib.auth import get_user_model
@@ -14,10 +15,25 @@ User = get_user_model()
 
 
 class BaseInfoView(APIView):
+    """API endpoint that returns aggregated platform statistics.
+
+    Attributes:
+        permission_classes (list): List of permission classes applied to the view.
+    """
+
     permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
+        """Handles GET requests to fetch global system metrics.
 
+        Args:
+            request (Request): The HTTP request object.
+            *args (tuple): Variable length argument list.
+            **kwargs (dict): Arbitrary keyword arguments.
+
+        Returns:
+            Response: DRF Response object containing serialized aggregation data.
+        """
         review_stats = Reviews.objects.aggregate(
             count=Count('id'),
             avg=Avg('rating')

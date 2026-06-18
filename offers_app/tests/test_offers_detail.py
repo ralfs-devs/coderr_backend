@@ -1,3 +1,5 @@
+"""Tests targeting access control and single entry modifications on offer details."""
+
 from rest_framework.reverse import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -7,12 +9,19 @@ from .test_base import BaseOfferTestMixin
 
 
 class OfferDetailApiTest(BaseOfferTestMixin, APITestCase):
+    """Test suite focused on detail tracking and view limitations.
+
+    Attributes:
+        url (str): The target endpoint URL for individual offer detail records.
+    """
 
     def setUp(self):
+        """Initializes configuration references through mixin parent setups."""
         super().setUp()
         self.url = reverse('offers-detail', kwargs={'pk': self.offer.pk})
 
     def test_get_offer_detail_success(self):
+        """Confirms accurate model extraction format parsing on target hits."""
         self.client.force_authenticate(user=self.business_user)
         response = self.client.get(self.url)
 
@@ -23,10 +32,12 @@ class OfferDetailApiTest(BaseOfferTestMixin, APITestCase):
         self.assertIn('min_price', response.data)
 
     def test_get_offer_detail_unauthenticated(self):
+        """Verifies safe rejection blocking sequence if token context parameters are omitted."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_offer_detail_not_found(self):
+        """Ensures that query inputs targetting missing unique primary keys raise a 404 error."""
         self.client.force_authenticate(user=self.business_user)
         invalid_url = reverse('offers-detail', kwargs={'pk': 99999})
         response = self.client.get(invalid_url)
@@ -34,8 +45,15 @@ class OfferDetailApiTest(BaseOfferTestMixin, APITestCase):
 
 
 class OfferUpdateApiTest(BaseOfferTestMixin, APITestCase):
+    """Test case handling evaluation paths during partial modification instructions.
+
+    Attributes:
+        url (str): The target endpoint URL for individual offer detail records.
+        other_user (User): An alternate user profile instance used to test permission breaches.
+    """
 
     def setUp(self):
+        """Appends alternate user configurations into basic parent setup environments."""
         super().setUp()
         self.url = reverse('offers-detail', kwargs={'pk': self.offer.pk})
         self.other_user = get_user_model().objects.create_user(
@@ -43,6 +61,7 @@ class OfferUpdateApiTest(BaseOfferTestMixin, APITestCase):
         )
 
     def test_patch_offer_success(self):
+        """Validates attribute adjustments when invoked by authentic profile authors."""
         self.client.force_authenticate(user=self.business_user)
         payload = {
             "title": "Updated Grafikdesign-Paket",
@@ -61,17 +80,20 @@ class OfferUpdateApiTest(BaseOfferTestMixin, APITestCase):
                          [0]['title'], "Basic Design Updated")
 
     def test_patch_offer_unauthenticated(self):
+        """Blocks modifications when credentials parameters are missing from request scope headers."""
         response = self.client.patch(
             self.url, {"title": "Hack"}, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_patch_offer_forbidden_wrong_user(self):
+        """Throws explicit 403 exceptions when unauthorized users attempt resource mutations."""
         self.client.force_authenticate(user=self.other_user)
         response = self.client.patch(
             self.url, {"title": "Hack"}, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_patch_offer_not_found(self):
+        """Validates that update calls to non-existent primary keys yield a 404 response."""
         self.client.force_authenticate(user=self.business_user)
         invalid_url = reverse('offers-detail', kwargs={'pk': 99999})
         response = self.client.patch(
@@ -80,21 +102,31 @@ class OfferUpdateApiTest(BaseOfferTestMixin, APITestCase):
 
 
 class OfferDeleteApiTest(BaseOfferTestMixin, APITestCase):
+    """Verifies permission validations and database side-effects of deletion requests.
+
+    Attributes:
+        url (str): The target endpoint URL for individual offer detail records.
+    """
+
     def setUp(self):
+        """Sets up the initial state for deletion tracking routines."""
         super().setUp()
         self.url = reverse('offers-detail', kwargs={'pk': self.offer.pk})
 
     def test_delete_offer_success(self):
+        """Asserts proper instance purging operations by verified master entity owners."""
         self.client.force_authenticate(user=self.business_user)
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Offers.objects.filter(pk=self.offer.pk).exists())
 
     def test_delete_offer_unauthenticated(self):
+        """Ensures anonymous drop operations fail without removing entries from records."""
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_delete_offer_forbidden(self):
+        """Guards and confirms that external profiles cannot trigger deletion sequences."""
         stranger = get_user_model().objects.create_user(
             username='stranger', password='password', email='s@s.com')
         self.client.force_authenticate(user=stranger)
@@ -103,6 +135,7 @@ class OfferDeleteApiTest(BaseOfferTestMixin, APITestCase):
         self.assertTrue(Offers.objects.filter(pk=self.offer.pk).exists())
 
     def test_delete_offer_not_found(self):
+        """Confirms 404 error management behaviors when target items do not exist."""
         self.client.force_authenticate(user=self.business_user)
         invalid_url = reverse('offers-detail', kwargs={'pk': 9999})
         response = self.client.delete(invalid_url)

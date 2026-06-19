@@ -39,6 +39,7 @@ class Reviews(models.Model):
             models.UniqueConstraint(
                 fields=['business_user', 'reviewer'], name='unique_customer_review_per_business')
         ]
+        verbose_name = 'Review'
 
     def __str__(self):
         """Generates a standard string representation of the review instance.

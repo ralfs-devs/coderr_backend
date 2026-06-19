@@ -20,7 +20,7 @@ class CustomerListApiTests(APITestCase):
     def setUp(self):
         """Prepares account records and target routing configuration addresses."""
         self.user = User.objects.create_user(
-            username='customer1', password='pw', email='c1@c.com')
+            username='customer1', password='pw', email='c1@c.com', type="customer")
         self.url = reverse('customer-profiles')
 
     def test_get_customer_list_success(self):

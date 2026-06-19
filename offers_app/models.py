@@ -27,6 +27,9 @@ class Offers(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta():
+        verbose_name = 'Offer'
+
     def __str__(self):
         """Returns the string representation of the offer.
 
@@ -67,6 +70,9 @@ class OfferDetails(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     features = models.JSONField(default=list)
     offer_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+
+    class Meta:
+        verbose_name = 'Offer Detail'
 
     def __str__(self):
         """Returns the string representation combining offer title and type.

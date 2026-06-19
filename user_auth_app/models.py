@@ -10,7 +10,7 @@ class CustomUserManager(BaseUserManager):
     Provides helper methods to create regular users and superusers.
     """
 
-    def create_user(self, username, email, password, type='customer', **extra_fields):
+    def create_user(self, username, email, password, type=None, **extra_fields):
         """Creates and saves a User instance containing explicit security traits.
 
         Args:
@@ -26,7 +26,6 @@ class CustomUserManager(BaseUserManager):
         Raises:
             ValueError: When necessary lookup strings or handles are dropped.
         """
-        user_type = extra_fields.pop('type', 'customer')
 
         if not email:
             raise ValueError('Email is required')
@@ -56,8 +55,8 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
-        extra_fields.setdefault('type', 'customer')
-        return self.create_user(username, email, password, **extra_fields)
+
+        return self.create_user(username, email, password, type=None ** extra_fields)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -79,7 +78,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=30, unique=True)
     email = models.EmailField(unique=True)
     type = models.CharField(
-        max_length=20, choices=USER_TYPE_CHOICES, default='customer')
+        max_length=20, choices=USER_TYPE_CHOICES, blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -87,7 +86,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email', 'type']
+    REQUIRED_FIELDS = ['email']
 
     def __str__(self):
         """Returns the string representation of the user.

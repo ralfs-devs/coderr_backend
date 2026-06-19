@@ -24,7 +24,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         """
 
         model = User
-        fields = ['username', 'email', 'password', 'repeated_password']
+        fields = ['username', 'email', 'type', 'password', 'repeated_password']
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate(self, data):
@@ -42,6 +42,9 @@ class RegistrationSerializer(serializers.ModelSerializer):
         if data['password'] != data['repeated_password']:
             raise serializers.ValidationError(
                 {"password": "Passwords do not match."})
+        if data.get('type') not in ['customer', 'business']:
+            raise serializers.ValidationError(
+                {"type": "Type must be either 'customer' or 'business'"})
         return data
 
     def create(self, validated_data):

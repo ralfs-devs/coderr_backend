@@ -1,6 +1,6 @@
 """Views providing controller configurations and context segmentation for user profiles."""
 
-from rest_framework import viewsets, permissions as permits
+from rest_framework import viewsets, permissions as rf_permissions
 from core.permissions import IsOwnerOrReadOnly
 from profiles_app.models import Profile
 from profiles_app.api.serializers import ProfileSerializer
@@ -17,7 +17,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
     serializer_class = ProfileSerializer
     lookup_field = 'pk'
-    permission_classes = [permits.IsAuthenticated, IsOwnerOrReadOnly]
+    permission_classes = [rf_permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_queryset(self):
         """Filters the initial profile dataset based on structural route components.

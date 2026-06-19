@@ -45,6 +45,22 @@ class RegistrationApiTests(APITestCase):
         response = self.client.post(self.url, {}, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_registration_missing_type(self):
+        """Confirms that registering a standard user without providing a type field triggers a validation error."""
+        payload = self.valid_payload.copy()
+        payload.pop('type')
+        response = self.client.post(self.url, payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('type', response.data)
+
+    def test_registration_invalid_type(self):
+        """Validates that submitting an unsupported operational profile type gets rejected by validation rules."""
+        payload = self.valid_payload.copy()
+        payload['type'] = 'admin'
+        response = self.client.post(self.url, payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('type', response.data)
+
     def test_registration_response_format(self):
         """Ensures creation responses return structured accounts mirroring initialized fields along with an explicit key identifier."""
         response = self.client.post(

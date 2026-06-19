@@ -15,8 +15,8 @@ class OrderListApiTest(APITestCase):
     """Tests checking data access restrictions and validation rules for listing orders.
 
     Attributes:
-        user1 (User): A test consumer user entity.
-        user2 (User): A test merchant business user entity.
+        user1 (User): A test customer user entity.
+        user2 (User): A test business user entity.
         other_user (User): An unassociated user profile used to verify isolation boundaries.
         order (Order): A baseline operational task instance.
         url (str): Target routing configuration address for orders.
@@ -25,11 +25,11 @@ class OrderListApiTest(APITestCase):
     def setUp(self):
         """Prepares account records, mock authentications, and standalone baseline orders."""
         self.user1 = User.objects.create_user(
-            username='u1', password='pw', email='u1@mail.de')
+            username='u1', password='pw', email='u1@mail.de', type='customer')
         self.user2 = User.objects.create_user(
-            username='u2', password='pw', email='u2@mail.de')
+            username='u2', password='pw', email='u2@mail.de', type='business')
         self.other_user = User.objects.create_user(
-            username='u3', password='pw', email='u3@mail.de')
+            username='u3', password='pw', email='u3@mail.de', type='customer')
 
         self.order = Order.objects.create(
             customer_user=self.user1, business_user=self.user2,
@@ -98,7 +98,7 @@ class OrderCreateApiTest(APITestCase):
         self.business = User.objects.create_user(
             username='biz', password='pw', email='biz@mail.de', type='business')
         self.customer = User.objects.create_user(
-            username='cust', password='pw', email='cust@mail.de')
+            username='cust', password='pw', email='cust@mail.de', type='customer')
 
         self.offer = Offers.objects.create(
             owner=self.business, title='Logo Design')
@@ -250,7 +250,7 @@ class OrderDeleteApiTest(APITestCase):
     def setUp(self):
         """Sets up operational administrative targets and tracking entries."""
         self.staff = User.objects.create_user(
-            username='staff', type='business', password='pw', email='s@b.de')
+            username='staff', password='pw', email='s@b.de')
         self.staff.is_staff = True
         self.staff.save()
 

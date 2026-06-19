@@ -1,6 +1,6 @@
 """ViewSets managing endpoint controllers and processing pipeline for offers."""
 
-from rest_framework import viewsets, permissions as permits
+from rest_framework import viewsets, permissions as rf_permissions
 from core.permissions import IsBusinessUser, IsOfferOwner
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -35,12 +35,12 @@ class OfferViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """Evaluates identity and applies strict role-based block exceptions to actions."""
         if self.action == 'list':
-            return [permits.AllowAny()]
+            return [rf_permissions.AllowAny()]
         elif self.action == 'retrieve':
-            return [permits.IsAuthenticated()]
+            return [rf_permissions.IsAuthenticated()]
         elif self.action == 'create':
-            return [permits.IsAuthenticated(), IsBusinessUser()]
-        return [permits.IsAuthenticated(), IsOfferOwner()]
+            return [rf_permissions.IsAuthenticated(), IsBusinessUser()]
+        return [rf_permissions.IsAuthenticated(), IsOfferOwner()]
 
     def perform_create(self, serializer):
         """Executes save actions inside database context transaction frames."""
@@ -56,7 +56,7 @@ class OfferDetailViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = OfferDetails.objects.all()
     serializer_class = OfferDetailsSerializer
-    permission_classes = [permits.IsAuthenticated]
+    permission_classes = [rf_permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
 
     def get_serializer_context(self):

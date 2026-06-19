@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 
-from rest_framework import viewsets, permissions as permits, status
+from rest_framework import viewsets, permissions as rf_permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -34,15 +34,15 @@ class OrderViewSet(viewsets.ModelViewSet):
             list: Instantiated rule assertions validating access criteria.
         """
         if self.action in ['update', 'partial_update']:
-            return [permits.IsAuthenticated(), IsBusinessUser()]
+            return [rf_permissions.IsAuthenticated(), IsBusinessUser()]
 
         if self.action == 'create':
-            return [permits.IsAuthenticated(), IsCustomerUser()]
+            return [rf_permissions.IsAuthenticated(), IsCustomerUser()]
 
         if self.action == 'destroy':
-            return [permits.IsAuthenticated(), IsStaff()]
+            return [rf_permissions.IsAuthenticated(), IsStaff()]
 
-        return [permits.IsAuthenticated()]
+        return [rf_permissions.IsAuthenticated()]
 
     def create(self, request, *args, **kwargs):
         """Creates an order instance using frozen parameter snapshots from specified details.

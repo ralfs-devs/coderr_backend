@@ -4,7 +4,7 @@ This module defines the URL patterns for handling user registration and login re
 It maps specific URL routes to their corresponding class-based views
 
 URL Patterns:
-    - register/: Allows users to register.
+    - registration/: Allows users to register.
     - login/: Allows users to log in.
 """
 

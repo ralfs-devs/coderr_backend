@@ -4,7 +4,6 @@ from rest_framework import viewsets, status, permissions as rf_permissions
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
-from rest_framework.reverse import reverse
 
 from core.permissions import IsBusinessUser, IsOfferOwner
 from django_filters.rest_framework import DjangoFilterBackend
@@ -61,8 +60,8 @@ class OfferViewSet(viewsets.ModelViewSet):
 
         Args:
             request (Request): The incoming HTTP request instance containing patch data.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
+            *args (list): Variable length argument list.
+            **kwargs (dict): Arbitrary keyword arguments.
 
         Returns:
             Response: The HTTP response instance containing fully populated details mappings.
@@ -75,17 +74,7 @@ class OfferViewSet(viewsets.ModelViewSet):
 
         response_serializer = OfferWriteSerializer(
             updated_instance, context=self.get_serializer_context())
-        response_data = response_serializer.data
-
-        for detail_data in response_data.get('details', []):
-            detail_id = detail_data.get('id')
-            detail_data['url'] = reverse(
-                'single-offer-details',
-                kwargs={'pk': detail_id},
-                request=request
-            )
-
-        return Response(response_data, status=status.HTTP_200_OK)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
 
 
 class OfferDetailViewSet(viewsets.ReadOnlyModelViewSet):

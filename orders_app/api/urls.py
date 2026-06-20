@@ -12,6 +12,6 @@ urlpatterns = [
         actions={'patch': 'partial_update', 'delete': 'destroy'}), name='orders-detail'),
     path('order-count/<int:pk>/',
          OrderCountView.as_view(), name='ord-proc_cnt'),
-    path('completed-order-count/<int:pk>',
+    path('completed-order-count/<int:pk>/',
          CompletedOrderCountView.as_view(), name='ord-cpl_cnt')
 ]

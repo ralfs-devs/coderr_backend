@@ -24,7 +24,7 @@ class OffersListApiTest(APITestCase):
     def setUp(self):
         """Establishes target fixtures, base mock accounts, and standard payloads before runs."""
         self.user = User.objects.create_user(
-            username='j_doe', email='jdoe@example.com', password='password')
+            username='j_doe', email='jdoe@example.com', password='password', type='customer')
 
         self.business_user = User.objects.create_user(
             username='biz_user',
@@ -156,7 +156,7 @@ class OffersListApiTest(APITestCase):
             self.assertEqual(
                 list(offer.keys()),
                 expected_offer_keys,
-                msg=f"Unerwartete oder falsch sortierte Felder im Angebot: {list(offer.keys())}"
+                msg=f"Unexpected Fields in details: {list(offer.keys())}"
             )
 
             self.assertIsInstance(offer['id'], int)
@@ -174,11 +174,11 @@ class OffersListApiTest(APITestCase):
             if offer['details']:
                 detail = offer['details'][0]
                 # 'url' wurde hier entfernt, da sie laut Spezifikation nicht erlaubt ist
-                expected_detail_keys = ['id']
+                expected_detail_keys = ['id', 'url']
                 self.assertEqual(
                     list(detail.keys()),
                     expected_detail_keys,
-                    msg=f"Unerwartete Felder in details (z.B. unerlaubte 'url'): {list(detail.keys())}"
+                    msg=f"Unexpected fields in details (e.g. 'url'): {list(detail.keys())}"
                 )
                 self.assertIsInstance(detail['id'], int)
 
@@ -267,3 +267,42 @@ class OffersListApiTest(APITestCase):
         response_data = response.json()
 
         self.assertEqual(len(response_data['results']), 0)
+
+    def test_create_offer_with_incomplete_details_returns_400(self):
+        """Validates that creating an offer with missing package tiers triggers a 400 bad request."""
+        self.client.force_authenticate(user=self.business_user)
+
+        payload = {
+            "title": "Basic Design",
+            "image": None,
+            "description": "Ein umfassendes Grafikdesign-Paket für Unternehmen.",
+            "details": [
+                {
+                    "title": "Basic Design",
+                    "revisions": 2,
+                    "delivery_time_in_days": 5,
+                    "price": 50,
+                    "features": ["Logo Design", "Visitenkarte"],
+                    "offer_type": "basic"
+                },
+                {
+                    "title": "Standard Design",
+                    "revisions": 5,
+                    "delivery_time_in_days": 10,
+                    "price": 55,
+                    "features": ["Logo Design", "Visitenkarte", "Briefpapier"],
+                    "offer_type": "standard"
+                }
+            ]
+        }
+
+        response = self.client.post('/api/offers/', payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_offer_by_non_business_user_returns_403(self):
+        """Validates that a customer profile is barred from producing a new offer collection."""
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.post(
+            '/api/offers/', self.valid_payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

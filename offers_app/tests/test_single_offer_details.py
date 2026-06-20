@@ -29,11 +29,11 @@ class SingleOfferDetailApiTest(APITestCase):
         self.offer = Offers.objects.create(
             owner=self.user, title='Grafikdesign-Paket')
         self.detail = OfferDetails.objects.create(
-            offer=self.offer, title='Basic', revisions=2, delivery_time_in_days=5, price=50)
+            offer=self.offer, title='Basic Offer', revisions=2, delivery_time_in_days=5, price=50, offer_type='basic')
         OfferDetails.objects.create(
-            offer=self.offer, title='Standard', revisions=4, delivery_time_in_days=10, price=100)
+            offer=self.offer, title='Standard Offer', revisions=4, delivery_time_in_days=10, price=100, offer_type='standard')
         OfferDetails.objects.create(
-            offer=self.offer, title='Premium', revisions=6, delivery_time_in_days=15, price=150)
+            offer=self.offer, title='Premium Offer', revisions=6, delivery_time_in_days=15, price=150, offer_type='premium')
         self.url = reverse('single-offer-details',
                            kwargs={'pk': self.offer.pk})
 
@@ -100,7 +100,7 @@ class SingleOfferDetailApiTest(APITestCase):
         self.assertEqual(
             list(response_data.keys()),
             expected_keys,
-            msg=f"Unerwartete oder falsch sortierte Felder im Angebotsdetail: {list(response_data.keys())}"
+            msg=f"Unexpected or unknown Items in offer detail: {list(response_data.keys())}"
         )
 
         self.assertIsInstance(response_data['id'], int)
@@ -144,6 +144,7 @@ class SingleOfferDetailApiTest(APITestCase):
         self.assertEqual(response_data['title'], "Updated Grafikdesign-Paket")
 
         returned_details = response_data['details']
+
         self.assertEqual(len(returned_details), 3)
 
         basic_tier = next(
@@ -152,7 +153,7 @@ class SingleOfferDetailApiTest(APITestCase):
         self.assertEqual(basic_tier['title'], "Basic Design Updated")
         self.assertEqual(basic_tier['revisions'], 3)
         self.assertEqual(basic_tier['price'], 120)
-        self.assertIn('url', basic_tier)
+        self.assertNotIn('url', basic_tier)
 
         self.offer.refresh_from_db()
         self.assertEqual(self.offer.details.count(), 3)

@@ -54,9 +54,9 @@ class OfferDetails(models.Model):
     """
 
     TYPE_CHOICES = [
-        ('basic', 'Basic'),
-        ('standard', 'Standard'),
-        ('premium', 'Premium'),
+        ('basic', 'basic'),
+        ('standard', 'standard'),
+        ('premium', 'premium'),
     ]
 
     offer = models.ForeignKey(

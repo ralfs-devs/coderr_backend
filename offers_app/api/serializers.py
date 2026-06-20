@@ -1,16 +1,17 @@
-
-
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from offers_app.models import Offers, OfferDetails
 
 
 class OfferDetailsSerializer(serializers.ModelSerializer):
-    """Serializer for nested offer details and tier options."""
+    """Serializer designed for full read/write operations on individual offer detail tiers."""
 
-    id = serializers.IntegerField(required=False)
     price = serializers.DecimalField(
-        max_digits=10, decimal_places=2, coerce_to_string=False, required=False)
+        max_digits=10,
+        decimal_places=2,
+        coerce_to_string=False,
+        required=False
+    )
 
     class Meta:
         """Meta options for OfferDetailsSerializer."""
@@ -22,41 +23,9 @@ class OfferDetailsSerializer(serializers.ModelSerializer):
             'title': {'required': False},
             'revisions': {'required': False},
             'delivery_time_in_days': {'required': False},
-            'price': {'required': False},
             'features': {'required': False},
-            'offer_type': {'required': False},
+            'offer_type': {'required': True},
         }
-
-    def to_internal_value(self, data):
-        """Injects the existing record ID based on the offer_type mapping.
-
-        Args:
-            data (dict): The unvalidated incoming primitive data dictionary.
-
-        Returns:
-            dict: The validated and structurally augmented internal data dataset.
-        """
-        if not data.get('id'):
-            offer_serializer = self.parent.parent if self.parent else None
-            if offer_serializer and offer_serializer.instance:
-                otype = data.get('offer_type')
-                if otype:
-                    existing_detail = offer_serializer.instance.details.filter(
-                        offer_type=otype).first()
-                    if existing_detail:
-                        data['id'] = existing_detail.id
-        return super().to_internal_value(data)
-
-    def get_url(self, obj):
-        """Generates the absolute URL for the specific offer details tier instance.
-
-        Args:
-            obj (OfferDetails): The current offer details object instance.
-
-        Returns:
-            str: The fully qualified URL string pointing to the details resource.
-        """
-        return reverse('offers-detail', kwargs={'pk': obj.pk}, request=self.context.get('request'))
 
 
 class OfferReadSerializer(serializers.ModelSerializer):
@@ -84,7 +53,7 @@ class OfferReadSerializer(serializers.ModelSerializer):
             obj (Offers): The parent offer instance being processed.
 
         Returns:
-            list[dict]: A list containing the target database id and target routing string.
+            list[dict]: A list containing strictly the target database id and absolute routing string.
         """
         request = self.context.get('request')
         return [
@@ -102,10 +71,11 @@ class OfferReadSerializer(serializers.ModelSerializer):
             obj (Offers): The parent offer instance being processed.
 
         Returns:
-            Decimal or None: The lowest recorded pricing figure for sub-elements.
+            int or None: The lowest recorded pricing figure for sub-elements.
         """
         from django.db.models import Min
-        return obj.details.aggregate(Min('price'))['price__min']
+        price = obj.details.aggregate(Min('price'))['price__min']
+        return int(price) if price is not None else None
 
     def get_min_delivery_time(self, obj):
         """Determines the shortest delivery timeline variant from associated sets.
@@ -135,15 +105,21 @@ class OfferListSerializer(OfferReadSerializer):
         ]
 
     def get_details(self, obj):
-        """Overridden to exclude the URL from details list as required by the list specification.
+        """Compiles relative routing resource links for related tiers.
 
         Args:
             obj (Offers): The parent offer instance being processed.
 
         Returns:
-            list[dict]: A list containing only the target database id.
+            list[dict]: A list containing strictly the target database id and relative routing string.
         """
-        return [{"id": d.id} for d in obj.details.all()]
+        return [
+            {
+                "id": d.id,
+                "url": f"/offerdetails/{d.id}/"
+            }
+            for d in obj.details.all()
+        ]
 
     def get_user_details(self, obj):
         """Resolves connected ownership records to pull foundational user metadata.
@@ -165,7 +141,7 @@ class OfferListSerializer(OfferReadSerializer):
 class OfferWriteSerializer(serializers.ModelSerializer):
     """Serializer designed to process and validate inbound modifications or creation payloads."""
 
-    details = OfferDetailsSerializer(many=True, read_only=True)
+    details = serializers.JSONField(required=False)
 
     class Meta:
         """Meta options for OfferWriteSerializer."""
@@ -173,29 +149,64 @@ class OfferWriteSerializer(serializers.ModelSerializer):
         model = Offers
         fields = ['id', 'title', 'image', 'description', 'details']
 
-    def get_details(self, obj):
-        """Compiles minimal identifier and unique routing resource links for related tiers.
+    def to_representation(self, instance):
+        """Formats the output representation exactly matching the write operations specification.
 
         Args:
-            obj (Offers): The parent offer instance being processed.
+            instance (Offers): The parent offer instance being processed.
 
         Returns:
-            list[dict]: A list containing the target database id and target routing string.
+            dict: The serialized dictionary structure containing fields without URLs.
         """
-        request = self.context.get('request')
-        return [
+        representation = super().to_representation(instance)
+        representation['details'] = [
             {
                 "id": d.id,
                 "title": d.title,
                 "revisions": d.revisions,
                 "delivery_time_in_days": d.delivery_time_in_days,
-                "price": d.price,
+                "price": float(d.price) if d.price is not None else 0.0,
                 "features": d.features,
-                "offer_type": d.offer_type,
-                "url": reverse('single-offer-details', kwargs={'pk': d.pk}, request=request) if request else ''
+                "offer_type": d.offer_type
             }
-            for d in obj.details.all().order_by('id')
+            for d in instance.details.all().order_by('id')
         ]
+        return representation
+
+    def validate_details(self, value):
+        """Validates that the details array contains exactly the three required package tiers.
+
+        Args:
+            value (list): The list of details dictionaries from the request payload.
+
+        Returns:
+            list: The validated details list if compliance rules pass.
+
+        Raises:
+            ValidationError: If any of the required package types are missing or duplicated.
+        """
+        if value is None:
+            return value
+
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Details must be a list.")
+
+        request = self.context.get('request')
+        is_partial = request and request.method == 'PATCH'
+
+        if is_partial:
+            return value
+
+        required_types = {'basic', 'standard', 'premium'}
+        provided_types = [item.get('offer_type')
+                          for item in value if isinstance(item, dict)]
+
+        if set(provided_types) != required_types or len(provided_types) != 3:
+            raise serializers.ValidationError(
+                "An offer must contain exactly three detail packages: basic, standard, and premium."
+            )
+
+        return value
 
     def create(self, validated_data):
         """Saves parent core parameters and creates dependent data collections.
@@ -207,7 +218,7 @@ class OfferWriteSerializer(serializers.ModelSerializer):
             Offers: The newly constructed persistence instances.
         """
         owner = self.context['request'].user
-        details_data = self.initial_data.get('details', [])
+        details_data = validated_data.pop('details', [])
         offer = Offers.objects.create(owner=owner, **validated_data)
         for detail_data in details_data:
             OfferDetails.objects.create(offer=offer, **detail_data)
@@ -223,8 +234,8 @@ class OfferWriteSerializer(serializers.ModelSerializer):
         Returns:
             Offers: The fully adjusted modified target model instances.
         """
+        details_data = validated_data.pop('details', None)
         instance = super().update(instance, validated_data)
-        details_data = self.initial_data.get('details', None)
 
         if details_data is not None:
             for detail_item in details_data:
@@ -233,7 +244,8 @@ class OfferWriteSerializer(serializers.ModelSerializer):
                     try:
                         detail = instance.details.get(offer_type=otype)
                         for attr, value in detail_item.items():
-                            setattr(detail, attr, value)
+                            if attr != 'offer_type':
+                                setattr(detail, attr, value)
                         detail.save()
                     except instance.details.model.DoesNotExist:
                         pass

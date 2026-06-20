@@ -80,3 +80,79 @@ class SingleOfferDetailApiTest(APITestCase):
 
         self.assertEqual(data['min_price'], 50)
         self.assertEqual(data['min_delivery_time'], 5)
+
+    def test_single_offer_detail_exact_structure_and_order(self):
+        """Verifies that the single offer detail endpoint returns the exact key sequence, content types, and has no extra fields."""
+        self.client.force_authenticate(user=self.user)
+
+        url = reverse('single-offer-details', kwargs={'pk': self.detail.pk})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_data = response.json()
+
+        expected_keys = [
+            'id', 'title', 'revisions', 'delivery_time_in_days',
+            'price', 'features', 'offer_type'
+        ]
+
+        self.assertEqual(
+            list(response_data.keys()),
+            expected_keys,
+            msg=f"Unerwartete oder falsch sortierte Felder im Angebotsdetail: {list(response_data.keys())}"
+        )
+
+        self.assertIsInstance(response_data['id'], int)
+        self.assertIsInstance(response_data['title'], str)
+        self.assertIsInstance(response_data['revisions'], int)
+        self.assertIsInstance(response_data['delivery_time_in_days'], int)
+        self.assertIsInstance(response_data['price'], (int, float))
+        self.assertIsInstance(response_data['features'], list)
+        self.assertIsInstance(response_data['offer_type'], str)
+
+    def test_patch_offer_details_by_offer_type_success(self):
+        """Verify that a PATCH request updates an internal tier using its offer type identifier.
+
+        Ensures that partial updates mutate existing child records without creating
+        unwanted duplicates or modifying separate sub-tiers.
+        """
+        patch_payload = {
+            "title": "Updated Grafikdesign-Paket",
+            "details": [
+                {
+                    "title": "Basic Design Updated",
+                    "revisions": 3,
+                    "delivery_time_in_days": 6,
+                    "price": 120,
+                    "features": [
+                        "Logo Design",
+                        "Flyer"
+                    ],
+                    "offer_type": "basic"
+                }
+            ]
+        }
+
+        target_url = reverse('offers-detail', kwargs={'pk': self.offer.pk})
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch(target_url, patch_payload, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()
+
+        self.assertEqual(response_data['title'], "Updated Grafikdesign-Paket")
+
+        returned_details = response_data['details']
+        self.assertEqual(len(returned_details), 3)
+
+        basic_tier = next(
+            (d for d in returned_details if d['offer_type'] == 'basic'), None)
+        self.assertIsNotNone(basic_tier)
+        self.assertEqual(basic_tier['title'], "Basic Design Updated")
+        self.assertEqual(basic_tier['revisions'], 3)
+        self.assertEqual(basic_tier['price'], 120)
+        self.assertIn('url', basic_tier)
+
+        self.offer.refresh_from_db()
+        self.assertEqual(self.offer.details.count(), 3)

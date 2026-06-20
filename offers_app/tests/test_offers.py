@@ -125,4 +125,145 @@ class OffersListApiTest(APITestCase):
             first_offer['user_details'].keys()))
 
         if first_offer['details']:
-            self.assertIn('url', first_offer['details'][0])
+            self.assertIn('id', first_offer['details'][0])
+
+    def test_offers_list_exact_structure_and_order(self):
+        """Verifies that the paginated response matches the exact key sequence, content types, and has no extra fields."""
+        response = self.client.get(self.url, {'page_size': 1})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_data = response.json()
+
+        expected_root_keys = ['count', 'next', 'previous', 'results']
+        self.assertEqual(list(response_data.keys()), expected_root_keys)
+
+        self.assertIsInstance(response_data['count'], int)
+        self.assertTrue(response_data['next'] is None or isinstance(
+            response_data['next'], str))
+        self.assertTrue(response_data['previous'] is None or isinstance(
+            response_data['previous'], str))
+        self.assertIsInstance(response_data['results'], list)
+
+        if response_data['results']:
+            offer = response_data['results'][0]
+
+            expected_offer_keys = [
+                'id', 'user', 'title', 'image', 'description',
+                'created_at', 'updated_at', 'details', 'min_price',
+                'min_delivery_time', 'user_details'
+            ]
+
+            self.assertEqual(
+                list(offer.keys()),
+                expected_offer_keys,
+                msg=f"Unerwartete oder falsch sortierte Felder im Angebot: {list(offer.keys())}"
+            )
+
+            self.assertIsInstance(offer['id'], int)
+            self.assertIsInstance(offer['user'], int)
+            self.assertIsInstance(offer['title'], str)
+            self.assertTrue(
+                offer['image'] is None or isinstance(offer['image'], str))
+            self.assertIsInstance(offer['description'], str)
+            self.assertIsInstance(offer['created_at'], str)
+            self.assertIsInstance(offer['updated_at'], str)
+            self.assertIsInstance(offer['min_price'], (int, float))
+            self.assertIsInstance(offer['min_delivery_time'], int)
+
+            self.assertIsInstance(offer['details'], list)
+            if offer['details']:
+                detail = offer['details'][0]
+                # 'url' wurde hier entfernt, da sie laut Spezifikation nicht erlaubt ist
+                expected_detail_keys = ['id']
+                self.assertEqual(
+                    list(detail.keys()),
+                    expected_detail_keys,
+                    msg=f"Unerwartete Felder in details (z.B. unerlaubte 'url'): {list(detail.keys())}"
+                )
+                self.assertIsInstance(detail['id'], int)
+
+            self.assertIsInstance(offer['user_details'], dict)
+            expected_user_keys = ['first_name', 'last_name', 'username']
+            self.assertEqual(
+                list(offer['user_details'].keys()),
+                expected_user_keys,
+                msg=f"Unerwartete oder falsch sortierte Felder in user_details: {list(offer['user_details'].keys())}"
+            )
+            self.assertIsInstance(offer['user_details']['first_name'], str)
+            self.assertIsInstance(offer['user_details']['last_name'], str)
+            self.assertIsInstance(offer['user_details']['username'], str)
+
+    def test_offers_list_filter_min_price_success_returns_json(self):
+        """Verifies that a valid min_price filter query returns HTTP 200 OK and a valid JSON response."""
+        response = self.client.get(
+            self.url, {'min_price': 75, 'page_size': 10})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response['Content-Type'], 'application/json')
+
+        response_data = response.json()
+        self.assertIn('results', response_data)
+
+    def test_offers_list_filter_min_price_invalid_returns_bad_request(self):
+        """Ensures that an invalid non-numeric min_price value safely returns HTTP 400 Bad Request as JSON."""
+        response = self.client.get(self.url, {'min_price': 'invalid_string'})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response['Content-Type'], 'application/json')
+
+    def test_offers_list_filter_max_delivery_time_success_returns_json(self):
+        """Verifies that a valid max_delivery_time filter query returns HTTP 200 OK and a valid JSON response."""
+        response = self.client.get(self.url, {'max_delivery_time': 10})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response['Content-Type'], 'application/json')
+
+        response_data = response.json()
+        self.assertIn('results', response_data)
+
+    def test_offers_list_filter_max_delivery_time_invalid_returns_bad_request(self):
+        """Ensures that an invalid non-numeric max_delivery_time value safely returns HTTP 400 Bad Request as JSON."""
+        response = self.client.get(
+            self.url, {'max_delivery_time': 'not_a_number'})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response['Content-Type'], 'application/json')
+
+    def test_offers_list_filter_creator_id_success_returns_json(self):
+        """Verifies that a valid creator_id filter query returns HTTP 200 OK and a valid JSON response."""
+        response = self.client.get(self.url, {'creator_id': self.user.id})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response['Content-Type'], 'application/json')
+
+        response_data = response.json()
+        self.assertIn('results', response_data)
+
+    def test_offers_list_filter_creator_id_invalid_returns_bad_request(self):
+        """Ensures that an invalid non-numeric creator_id value safely returns HTTP 400 Bad Request as JSON."""
+        response = self.client.get(self.url, {'creator_id': 'invalid_user'})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response['Content-Type'], 'application/json')
+
+    def test_offers_list_filter_search_matches_title(self):
+        """Verifies that the search filter correctly returns records matching the title text."""
+        response = self.client.get(self.url, {'search': 'Website Design'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response['Content-Type'], 'application/json')
+
+        response_data = response.json()
+
+        self.assertTrue(len(response_data['results']) > 0)
+        self.assertEqual(response_data['results']
+                         [0]['title'], 'Website Design')
+
+    def test_offers_list_filter_search_no_match_returns_empty(self):
+        """Ensures that a search query with no matching text fields returns an empty result list."""
+        response = self.client.get(
+            self.url, {'search': 'NonExistentString12345'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_data = response.json()
+
+        self.assertEqual(len(response_data['results']), 0)

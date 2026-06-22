@@ -28,7 +28,7 @@ class BaseOfferTestMixin(APITestCase):
                 title=f"Angebot {i}",
                 description="Testbeschreibung"
             )
-            # 1. Basic Detail erstellen
+
             OfferDetails.objects.create(
                 offer=offer,
                 title="Basic",
@@ -37,7 +37,7 @@ class BaseOfferTestMixin(APITestCase):
                 offer_type='basic',
                 revisions=1 + (i % 3)
             )
-            # 2. Standard Detail erstellen
+
             OfferDetails.objects.create(
                 offer=offer,
                 title="Standard",
@@ -46,7 +46,7 @@ class BaseOfferTestMixin(APITestCase):
                 offer_type='standard',
                 revisions=2 + (i % 3)
             )
-            # 3. Premium Detail erstellen
+
             OfferDetails.objects.create(
                 offer=offer,
                 title="Premium",

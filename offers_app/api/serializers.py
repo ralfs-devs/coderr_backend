@@ -220,8 +220,6 @@ class OfferWriteSerializer(serializers.ModelSerializer):
             incoming_details_map = {
                 item['offer_type']: item for item in details_data if 'offer_type' in item
             }
-
-            # Direkt über die Modell-Klasse abfragen, um jeglichen Instanz-Cache auszuhebeln
             existing_details = OfferDetails.objects.filter(
                 offer_id=instance.pk)
 

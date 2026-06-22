@@ -1,7 +1,7 @@
 
 # coderr_backend
 
-### A backend Application to provide an API for a kanban board.
+### A backend Application to provide an API for a Freelancer Developer Plattform.
 #### Built with Python and Django Rest Framwork
 
 This project is in the early testing phase.  

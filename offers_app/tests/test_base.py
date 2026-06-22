@@ -6,9 +6,14 @@ from user_auth_app.models import User
 
 class BaseOfferTestMixin(APITestCase):
 
+    from rest_framework.test import APITestCase
+
+
+class BaseOfferTestMixin(APITestCase):
+
     @classmethod
     def setUpTestData(cls):
-
+        """Sets up the initial test data for all inheriting test cases."""
         cls.business_user = User.objects.create_user(
             username='biz_man',
             email='biz@test.de',
@@ -23,6 +28,7 @@ class BaseOfferTestMixin(APITestCase):
                 title=f"Angebot {i}",
                 description="Testbeschreibung"
             )
+            # 1. Basic Detail erstellen
             OfferDetails.objects.create(
                 offer=offer,
                 title="Basic",
@@ -30,5 +36,23 @@ class BaseOfferTestMixin(APITestCase):
                 delivery_time_in_days=1 + (i % 10),
                 offer_type='basic',
                 revisions=1 + (i % 3)
+            )
+            # 2. Standard Detail erstellen
+            OfferDetails.objects.create(
+                offer=offer,
+                title="Standard",
+                price=150 + i,
+                delivery_time_in_days=2 + (i % 10),
+                offer_type='standard',
+                revisions=2 + (i % 3)
+            )
+            # 3. Premium Detail erstellen
+            OfferDetails.objects.create(
+                offer=offer,
+                title="Premium",
+                price=200 + i,
+                delivery_time_in_days=3 + (i % 10),
+                offer_type='premium',
+                revisions=3 + (i % 3)
             )
         cls.offer = offer

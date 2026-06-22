@@ -150,14 +150,7 @@ class OfferWriteSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'image', 'description', 'details']
 
     def to_representation(self, instance):
-        """Formats the output representation exactly matching the write operations specification.
-
-        Args:
-            instance (Offers): The parent offer instance being processed.
-
-        Returns:
-            dict: The serialized dictionary structure containing fields without URLs.
-        """
+        """Formats the output representation containing all fields and all 3 updated/original details."""
         representation = super().to_representation(instance)
 
         db_details = OfferDetails.objects.filter(
@@ -180,17 +173,7 @@ class OfferWriteSerializer(serializers.ModelSerializer):
         return representation
 
     def validate_details(self, value):
-        """Validates that the details array contains exactly the three required package tiers.
-
-        Args:
-            value (list): The list of details dictionaries from the request payload.
-
-        Returns:
-            list: The validated details list if compliance rules pass.
-
-        Raises:
-            ValidationError: If any of the required package types are missing or duplicated.
-        """
+        """Validates that the details array contains exactly the three required package tiers."""
         if value is None:
             return value
 
@@ -215,14 +198,7 @@ class OfferWriteSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        """Saves parent core parameters and creates dependent data collections.
-
-        Args:
-            validated_data (dict): Cleaned input values extracted from requests.
-
-        Returns:
-            Offers: The newly constructed persistence instances.
-        """
+        """Saves parent core parameters and creates dependent data collections."""
         owner = self.context['request'].user
         details_data = validated_data.pop('details', [])
         offer = Offers.objects.create(owner=owner, **validated_data)
@@ -231,29 +207,23 @@ class OfferWriteSerializer(serializers.ModelSerializer):
         return offer
 
     def update(self, instance, validated_data):
-        """Update the Offer instance and handle nested details provided as JSONField.
-
-        This method ensures that details not included in the PATCH request are preserved
-        by explicitly updating existing ones and leaving others untouched in the database.
-
-        Args:
-            instance: The existing Offer instance.
-            validated_data: The validated data from the PATCH request.
-
-        Returns:
-            The updated Offer instance.
-        """
+        """Updates specified fields and merges patched details into existing tiers without touching others."""
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get(
             'description', instance.description)
+        instance.image = validated_data.get('image', instance.image)
         instance.save()
 
         details_data = validated_data.get('details')
 
         if details_data:
             incoming_details_map = {
-                item['offer_type']: item for item in details_data}
-            existing_details = list(instance.details.all())
+                item['offer_type']: item for item in details_data if 'offer_type' in item
+            }
+
+            # Direkt über die Modell-Klasse abfragen, um jeglichen Instanz-Cache auszuhebeln
+            existing_details = OfferDetails.objects.filter(
+                offer_id=instance.pk)
 
             for detail in existing_details:
                 if detail.offer_type in incoming_details_map:

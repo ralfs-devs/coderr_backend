@@ -56,33 +56,35 @@ class OfferViewSet(viewsets.ModelViewSet):
         return {'request': self.request}
 
     def partial_update(self, request, *args, **kwargs):
-        """Handle PATCH requests to ensure partial updates preserve existing data.
-
-        This method explicitly sets partial=True to allow updating only provided fields
-        and reloads the instance fresh from the database to ensure the response 
-        contains all nested details, not just the updated ones.
-
-        Args:
-            request: The incoming HTTP request.
-            *args: Additional positional arguments.
-            **kwargs: Additional keyword arguments.
-
-        Returns:
-            Response object containing the fully updated and serialized data.
-        """
-        kwargs['partial'] = True
+        """Handle PATCH requests to ensure partial updates preserve existing data."""
         instance = self.get_object()
         serializer = self.get_serializer(
             instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        fresh_instance = self.queryset.model.objects.get(pk=instance.pk)
-        if hasattr(fresh_instance, '_prefetched_objects_cache'):
-            fresh_instance._prefetched_objects_cache = {}
+        from offers_app.models import OfferDetails
+        all_db_details = OfferDetails.objects.filter(
+            offer_id=instance.pk).order_by('id')
 
-        fresh_serializer = self.get_serializer(fresh_instance)
-        return Response(fresh_serializer.data)
+        return Response({
+            "id": instance.id,
+            "title": instance.title,
+            "image": instance.image.url if instance.image else None,
+            "description": instance.description,
+            "details": [
+                {
+                    "id": d.id,
+                    "title": d.title,
+                    "revisions": d.revisions,
+                    "delivery_time_in_days": d.delivery_time_in_days,
+                    "price": float(d.price) if d.price is not None else 0.0,
+                    "features": d.features,
+                    "offer_type": d.offer_type
+                }
+                for d in all_db_details
+            ]
+        })
 
 
 class OfferDetailViewSet(viewsets.ReadOnlyModelViewSet):

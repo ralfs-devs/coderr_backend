@@ -56,25 +56,33 @@ class OfferViewSet(viewsets.ModelViewSet):
         return {'request': self.request}
 
     def partial_update(self, request, *args, **kwargs):
-        """Apply patch configurations and return full representation data for this endpoint.
+        """Handle PATCH requests to ensure partial updates preserve existing data.
+
+        This method explicitly sets partial=True to allow updating only provided fields
+        and reloads the instance fresh from the database to ensure the response 
+        contains all nested details, not just the updated ones.
 
         Args:
-            request (Request): The incoming HTTP request instance containing patch data.
-            *args (list): Variable length argument list.
-            **kwargs (dict): Arbitrary keyword arguments.
+            request: The incoming HTTP request.
+            *args: Additional positional arguments.
+            **kwargs: Additional keyword arguments.
 
         Returns:
-            Response: The HTTP response instance containing fully populated details mappings.
+            Response object containing the fully updated and serialized data.
         """
+        kwargs['partial'] = True
         instance = self.get_object()
         serializer = self.get_serializer(
             instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        updated_instance = serializer.save()
+        self.perform_update(serializer)
 
-        response_serializer = OfferWriteSerializer(
-            updated_instance, context=self.get_serializer_context())
-        return Response(response_serializer.data, status=status.HTTP_200_OK)
+        fresh_instance = self.queryset.model.objects.get(pk=instance.pk)
+        if hasattr(fresh_instance, '_prefetched_objects_cache'):
+            fresh_instance._prefetched_objects_cache = {}
+
+        fresh_serializer = self.get_serializer(fresh_instance)
+        return Response(fresh_serializer.data)
 
 
 class OfferDetailViewSet(viewsets.ReadOnlyModelViewSet):

@@ -173,7 +173,6 @@ class OffersListApiTest(APITestCase):
             self.assertIsInstance(offer['details'], list)
             if offer['details']:
                 detail = offer['details'][0]
-                # 'url' wurde hier entfernt, da sie laut Spezifikation nicht erlaubt ist
                 expected_detail_keys = ['id', 'url']
                 self.assertEqual(
                     list(detail.keys()),
@@ -305,4 +304,5 @@ class OffersListApiTest(APITestCase):
 
         response = self.client.post(
             '/api/offers/', self.valid_payload, format='json')
+
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

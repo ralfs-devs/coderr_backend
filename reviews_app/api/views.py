@@ -1,10 +1,10 @@
 """Viewsets handling transactional evaluation workflows, permissions checks, and individual customer review operations."""
 
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions as rf_permissions, status
 from rest_framework.response import Response
 from reviews_app.models import Reviews
 from reviews_app.api.serializers import ReviewsSerializer
-from core.permissions import IsReviewOwner
+from core.permissions import IsReviewOwner, IsCustomerUser
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
@@ -25,8 +25,10 @@ class ReviewsViewSet(viewsets.ModelViewSet):
             list: Instantiated permission rule objects evaluating target network contexts.
         """
         if self.action in ['update', 'partial_update', 'destroy']:
-            return [permissions.IsAuthenticated(), IsReviewOwner()]
-        return [permissions.IsAuthenticated()]
+            return [rf_permissions.IsAuthenticated(), IsReviewOwner()]
+        if self.action == 'create':
+            return [rf_permissions.IsAuthenticated(), IsCustomerUser()]
+        return [rf_permissions.IsAuthenticated()]
 
     def perform_create(self, serializer):
         """Saves a new review instance, binding the requesting user profile as the static author.

@@ -79,6 +79,43 @@ class OfferUpdateApiTest(BaseOfferTestMixin, APITestCase):
         self.assertEqual(response.data['details']
                          [0]['title'], "Basic Design Updated")
 
+    def test_patch_offer_partial_details_updates_successfully(self):
+        """Validates that a partial PATCH request successfully updates a specific detail tier."""
+        self.client.force_authenticate(user=self.business_user)
+        detail_url = reverse('offers-detail', kwargs={'pk': self.offer.id})
+
+        payload = {
+            "title": "Updated Grafikdesign-Paket",
+            "details": [
+                {
+                    "title": "Basic Design Updated",
+                    "revisions": 3,
+                    "delivery_time_in_days": 6,
+                    "price": 120,
+                    "features": ["Logo Design", "Flyer"],
+                    "offer_type": "basic"
+                }
+            ]
+        }
+
+        response = self.client.patch(detail_url, payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_data = response.json()
+        self.assertEqual(response_data["title"], "Updated Grafikdesign-Paket")
+        self.assertEqual(len(response_data["details"]), 3)
+
+        for detail in response_data["details"]:
+            self.assertIn("id", detail)
+            self.assertIsInstance(detail["id"], int)
+            self.assertNotIn("url", detail)
+
+        basic_tier = next(
+            d for d in response_data["details"] if d["offer_type"] == "basic")
+        self.assertEqual(basic_tier["title"], "Basic Design Updated")
+        self.assertEqual(basic_tier["revisions"], 3)
+        self.assertEqual(basic_tier["price"], 120)
+
     def test_patch_offer_unauthenticated(self):
         """Blocks modifications when credentials parameters are missing from request scope headers."""
         response = self.client.patch(

@@ -159,6 +159,11 @@ class OfferWriteSerializer(serializers.ModelSerializer):
             dict: The serialized dictionary structure containing fields without URLs.
         """
         representation = super().to_representation(instance)
+
+        db_details = OfferDetails.objects.filter(
+            offer_id=instance.id
+        ).order_by('id')
+
         representation['details'] = [
             {
                 "id": d.id,
@@ -169,8 +174,9 @@ class OfferWriteSerializer(serializers.ModelSerializer):
                 "features": d.features,
                 "offer_type": d.offer_type
             }
-            for d in instance.details.all().order_by('id')
+            for d in db_details
         ]
+
         return representation
 
     def validate_details(self, value):
@@ -225,34 +231,39 @@ class OfferWriteSerializer(serializers.ModelSerializer):
         return offer
 
     def update(self, instance, validated_data):
-        """Applies configuration updates on parent values while tracking sub-tier mutations.
+        """Update the Offer instance and handle nested details provided as JSONField.
+
+        This method ensures that details not included in the PATCH request are preserved
+        by explicitly updating existing ones and leaving others untouched in the database.
 
         Args:
-            instance (Offers): Original target asset record state.
-            validated_data (dict): Replacement parameter keys and data clusters.
+            instance: The existing Offer instance.
+            validated_data: The validated data from the PATCH request.
 
         Returns:
-            Offers: The fully adjusted modified target model instances.
+            The updated Offer instance.
         """
-        details_data = validated_data.pop('details', None)
-        instance = super().update(instance, validated_data)
+        instance.title = validated_data.get('title', instance.title)
+        instance.description = validated_data.get(
+            'description', instance.description)
+        instance.save()
 
-        if details_data is not None:
-            for detail_item in details_data:
-                otype = detail_item.get('offer_type')
-                if otype:
-                    try:
-                        detail = instance.details.get(offer_type=otype)
-                        for attr, value in detail_item.items():
-                            if attr != 'offer_type':
-                                setattr(detail, attr, value)
-                        detail.save()
-                    except instance.details.model.DoesNotExist:
-                        pass
+        details_data = validated_data.get('details')
 
-            if hasattr(instance, '_prefetched_objects_cache'):
-                instance._prefetched_objects_cache.clear()
-            if hasattr(instance, '_details_cache'):
-                delattr(instance, '_details_cache')
+        if details_data:
+            incoming_details_map = {
+                item['offer_type']: item for item in details_data}
+            existing_details = list(instance.details.all())
+
+            for detail in existing_details:
+                if detail.offer_type in incoming_details_map:
+                    data = incoming_details_map[detail.offer_type]
+                    detail.title = data.get('title', detail.title)
+                    detail.revisions = data.get('revisions', detail.revisions)
+                    detail.delivery_time_in_days = data.get(
+                        'delivery_time_in_days', detail.delivery_time_in_days)
+                    detail.price = data.get('price', detail.price)
+                    detail.features = data.get('features', detail.features)
+                    detail.save()
 
         return instance

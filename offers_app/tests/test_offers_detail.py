@@ -80,7 +80,8 @@ class OfferUpdateApiTest(BaseOfferTestMixin, APITestCase):
                          [0]['title'], "Basic Design Updated")
 
     def test_patch_offer_partial_details_updates_successfully(self):
-        """Validates that a partial PATCH request successfully updates a specific detail tier."""
+        """Validates that a partial PATCH request 
+        successfully updates a specific detail tier."""
         self.client.force_authenticate(user=self.business_user)
         detail_url = reverse('offers-detail', kwargs={'pk': self.offer.id})
 
@@ -141,7 +142,8 @@ class OfferUpdateApiTest(BaseOfferTestMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_patch_fails_if_offer_type_is_missing_in_details(self):
-        """Verify that a PATCH request returns 400 if the offer_type is missing in the details list.
+        """Verify that a PATCH request returns 400 
+        if the offer_type is missing in the details list.
 
         Args:
             None
@@ -175,7 +177,8 @@ class OfferUpdateApiTest(BaseOfferTestMixin, APITestCase):
 
 
 class OfferDeleteApiTest(BaseOfferTestMixin, APITestCase):
-    """Verifies permission validations and database side-effects of deletion requests.
+    """Verifies permission validations and database side-effects 
+    of deletion requests.
 
     Attributes:
         url (str): The target endpoint URL for individual offer detail records.
@@ -187,19 +190,22 @@ class OfferDeleteApiTest(BaseOfferTestMixin, APITestCase):
         self.url = reverse('offers-detail', kwargs={'pk': self.offer.pk})
 
     def test_delete_offer_success(self):
-        """Asserts proper instance purging operations by verified master entity owners."""
+        """Asserts proper instance purging operations 
+        by verified master entity owners."""
         self.client.force_authenticate(user=self.business_user)
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Offers.objects.filter(pk=self.offer.pk).exists())
 
     def test_delete_offer_unauthenticated(self):
-        """Ensures anonymous drop operations fail without removing entries from records."""
+        """Ensures anonymous drop operations fail 
+        without removing entries from records."""
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_delete_offer_forbidden(self):
-        """Guards and confirms that external profiles cannot trigger deletion sequences."""
+        """Guards and confirms that 
+        external profiles cannot trigger deletion sequences."""
         stranger = get_user_model().objects.create_user(
             username='stranger', password='password', email='s@s.com')
         self.client.force_authenticate(user=stranger)
@@ -208,7 +214,8 @@ class OfferDeleteApiTest(BaseOfferTestMixin, APITestCase):
         self.assertTrue(Offers.objects.filter(pk=self.offer.pk).exists())
 
     def test_delete_offer_not_found(self):
-        """Confirms 404 error management behaviors when target items do not exist."""
+        """Confirms 404 error management behaviors 
+        when target items do not exist."""
         self.client.force_authenticate(user=self.business_user)
         invalid_url = reverse('offers-detail', kwargs={'pk': 9999})
         response = self.client.delete(invalid_url)

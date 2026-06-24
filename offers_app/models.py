@@ -50,7 +50,8 @@ class OfferDetails(models.Model):
         delivery_time_in_days (PositiveIntegerField): Planned execution timeline duration.
         price (DecimalField): Exact financial cost structure of the selected item.
         features (JSONField): Collection describing inclusions and custom traits.
-        offer_type (CharField): Value tracking whether this represents a basic, standard, or premium tier.
+        offer_type (CharField): Value tracking 
+        whether this represents a basic, standard, or premium tier.
     """
 
     TYPE_CHOICES = [

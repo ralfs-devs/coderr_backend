@@ -13,7 +13,8 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
-        """Checks if the requesting user is the owner of the object for write operations.
+        """Checks if the requesting user 
+        is the owner of the object for write operations.
 
         Args:
             request (Request): The HTTP request object.
@@ -21,7 +22,8 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             obj (Model): The object instance being accessed.
 
         Returns:
-            bool: True if the request method is safe or the user is the owner, False otherwise.
+            bool: True if the request method 
+            is safe or the user is the owner, False otherwise.
         """
         if request.method in permissions.SAFE_METHODS:
             return True
@@ -40,7 +42,8 @@ class IsBusinessUser(permissions.BasePermission):
             view (View): The view instance handling the request.
 
         Returns:
-            bool: True if the user is authenticated and has the type 'business', False otherwise.
+            bool: True if the user is authenticated and has the type 'business',
+            False otherwise.
         """
         if not request.user.is_authenticated:
             return False
@@ -60,7 +63,8 @@ class IsBusinessUser(permissions.BasePermission):
             obj (Model): The object instance being accessed.
 
         Returns:
-            bool: True if the object's business_user_id matches the requesting user's ID, False otherwise.
+            bool: True if the object's business_user_id matches the requesting user's ID,
+            False otherwise.
         """
         return obj.business_user_id == request.user.id
 
@@ -76,7 +80,8 @@ class IsCustomerUser(permissions.BasePermission):
             view (View): The view instance handling the request.
 
         Returns:
-            bool: True if authenticated and type is 'customer', False otherwise.
+            bool: True if authenticated and type is 'customer', 
+            False otherwise.
         """
         return (
             request.user.is_authenticated and getattr(
@@ -92,7 +97,8 @@ class IsCustomerUser(permissions.BasePermission):
             obj (Model): The object instance being accessed.
 
         Returns:
-            bool: True if the object's owner matches the requesting user, False otherwise.
+            bool: True if the object's owner matches the requesting user,
+            False otherwise.
         """
         return (obj.owner == request.user)
 
@@ -108,7 +114,8 @@ class IsOfferOwner(permissions.BasePermission):
             view (View): The view instance handling the request.
 
         Returns:
-            bool: True if authenticated and type is 'business', False otherwise.
+            bool: True if authenticated and type is 'business',
+            False otherwise.
         """
         return (
             request.user.is_authenticated and getattr(
@@ -124,7 +131,8 @@ class IsOfferOwner(permissions.BasePermission):
             obj (Model): The object instance being accessed.
 
         Returns:
-            bool: True if the object's owner matches the requesting user, False otherwise.
+            bool: True if the object's owner matches the requesting user,
+            False otherwise.
         """
         return (obj.owner == request.user)
 
@@ -157,6 +165,7 @@ class IsReviewOwner(permissions.BasePermission):
             obj (Model): The object instance being accessed.
 
         Returns:
-            bool: True if the object's reviewer matches the requesting user, False otherwise.
+            bool: True if the object's reviewer matches the requesting user,
+            False otherwise.
         """
         return obj.reviewer == request.user

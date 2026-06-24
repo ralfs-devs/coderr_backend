@@ -97,7 +97,8 @@ class OffersListApiTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_offer_non_business_user_returns_403(self):
-        """Ensures non-business customer types are restricted with a 403 authorization block."""
+        """Ensures non-business customer types 
+        are restricted with a 403 authorization block."""
         self.client.force_authenticate(user=self.user)
 
         response = self.client.post(
@@ -106,7 +107,8 @@ class OffersListApiTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_offers_list_structure(self):
-        """Tests that response objects match standard pagination architecture specifications."""
+        """Tests that response objects match 
+        standard pagination architecture specifications."""
         response = self.client.get(self.url, {'page_size': 6})
         self.assertIn('results', response.data,
                       f"Antwort ist nicht paginiert: {response.data}")
@@ -128,7 +130,8 @@ class OffersListApiTest(APITestCase):
             self.assertIn('id', first_offer['details'][0])
 
     def test_offers_list_exact_structure_and_order(self):
-        """Verifies that the paginated response matches the exact key sequence, content types, and has no extra fields."""
+        """Verifies that the paginated response 
+        matches the exact key sequence, content types, and has no extra fields."""
         response = self.client.get(self.url, {'page_size': 1})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -186,14 +189,16 @@ class OffersListApiTest(APITestCase):
             self.assertEqual(
                 list(offer['user_details'].keys()),
                 expected_user_keys,
-                msg=f"Unerwartete oder falsch sortierte Felder in user_details: {list(offer['user_details'].keys())}"
+                msg=(f"Unerwartete oder falsch sortierte Felder in user_details: "
+                     f"{list(offer['user_details'].keys())}")
             )
             self.assertIsInstance(offer['user_details']['first_name'], str)
             self.assertIsInstance(offer['user_details']['last_name'], str)
             self.assertIsInstance(offer['user_details']['username'], str)
 
     def test_offers_list_filter_min_price_success_returns_json(self):
-        """Verifies that a valid min_price filter query returns HTTP 200 OK and a valid JSON response."""
+        """Verifies that a valid min_price filter query 
+        returns HTTP 200 OK and a valid JSON response."""
         response = self.client.get(
             self.url, {'min_price': 75, 'page_size': 10})
 
@@ -204,14 +209,16 @@ class OffersListApiTest(APITestCase):
         self.assertIn('results', response_data)
 
     def test_offers_list_filter_min_price_invalid_returns_bad_request(self):
-        """Ensures that an invalid non-numeric min_price value safely returns HTTP 400 Bad Request as JSON."""
+        """Ensures that an invalid non-numeric min_price value safely 
+        returns HTTP 400 Bad Request as JSON."""
         response = self.client.get(self.url, {'min_price': 'invalid_string'})
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response['Content-Type'], 'application/json')
 
     def test_offers_list_filter_max_delivery_time_success_returns_json(self):
-        """Verifies that a valid max_delivery_time filter query returns HTTP 200 OK and a valid JSON response."""
+        """Verifies that a valid max_delivery_time filter query 
+        returns HTTP 200 OK and a valid JSON response."""
         response = self.client.get(self.url, {'max_delivery_time': 10})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -221,7 +228,8 @@ class OffersListApiTest(APITestCase):
         self.assertIn('results', response_data)
 
     def test_offers_list_filter_max_delivery_time_invalid_returns_bad_request(self):
-        """Ensures that an invalid non-numeric max_delivery_time value safely returns HTTP 400 Bad Request as JSON."""
+        """Ensures that an invalid non-numeric max_delivery_time value safely 
+        returns HTTP 400 Bad Request as JSON."""
         response = self.client.get(
             self.url, {'max_delivery_time': 'not_a_number'})
 
@@ -229,7 +237,8 @@ class OffersListApiTest(APITestCase):
         self.assertEqual(response['Content-Type'], 'application/json')
 
     def test_offers_list_filter_creator_id_success_returns_json(self):
-        """Verifies that a valid creator_id filter query returns HTTP 200 OK and a valid JSON response."""
+        """Verifies that a valid creator_id filter query 
+        returns HTTP 200 OK and a valid JSON response."""
         response = self.client.get(self.url, {'creator_id': self.user.id})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -239,14 +248,16 @@ class OffersListApiTest(APITestCase):
         self.assertIn('results', response_data)
 
     def test_offers_list_filter_creator_id_invalid_returns_bad_request(self):
-        """Ensures that an invalid non-numeric creator_id value safely returns HTTP 400 Bad Request as JSON."""
+        """Ensures that an invalid non-numeric creator_id value safely 
+        returns HTTP 400 Bad Request as JSON."""
         response = self.client.get(self.url, {'creator_id': 'invalid_user'})
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response['Content-Type'], 'application/json')
 
     def test_offers_list_filter_search_matches_title(self):
-        """Verifies that the search filter correctly returns records matching the title text."""
+        """Verifies that the search filter correctly 
+        returns records matching the title text."""
         response = self.client.get(self.url, {'search': 'Website Design'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response['Content-Type'], 'application/json')
@@ -258,7 +269,8 @@ class OffersListApiTest(APITestCase):
                          [0]['title'], 'Website Design')
 
     def test_offers_list_filter_search_no_match_returns_empty(self):
-        """Ensures that a search query with no matching text fields returns an empty result list."""
+        """Ensures that a search query with no matching text fields 
+        returns an empty result list."""
         response = self.client.get(
             self.url, {'search': 'NonExistentString12345'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -268,7 +280,8 @@ class OffersListApiTest(APITestCase):
         self.assertEqual(len(response_data['results']), 0)
 
     def test_create_offer_by_non_business_user_returns_403(self):
-        """Validates that a customer profile is barred from producing a new offer collection."""
+        """Validates that a customer profile 
+        is barred from producing a new offer collection."""
         self.client.force_authenticate(user=self.user)
 
         response = self.client.post(

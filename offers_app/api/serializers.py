@@ -139,7 +139,8 @@ class OfferListSerializer(OfferReadSerializer):
 
 
 class OfferWriteSerializer(serializers.ModelSerializer):
-    """Serializer designed to process and validate inbound modifications or creation payloads."""
+    """Serializer designed to process and validate 
+    inbound modifications or creation payloads."""
 
     details = serializers.JSONField(required=False)
 
@@ -150,7 +151,8 @@ class OfferWriteSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'image', 'description', 'details']
 
     def to_representation(self, instance):
-        """Formats the output representation containing all fields and all 3 updated/original details."""
+        """Formats the output representation containing all fields
+          and all 3 updated/original details."""
         representation = super().to_representation(instance)
 
         db_details = OfferDetails.objects.filter(
@@ -173,7 +175,15 @@ class OfferWriteSerializer(serializers.ModelSerializer):
         return representation
 
     def validate_details(self, value):
-        """Validates that the details array contains exactly the three required package tiers."""
+        """Validates that the details list contains 
+        exactly the three required package tiers.
+
+        Args:
+            value (list): The list of inbound detail objects to be validated.
+
+        Returns:
+            list: The validated details data.
+        """
         if value is None:
             return value
 
@@ -184,6 +194,32 @@ class OfferWriteSerializer(serializers.ModelSerializer):
         is_partial = request and request.method == 'PATCH'
 
         if is_partial:
+            if len(value) == 0:
+                raise serializers.ValidationError(
+                    "Details list cannot be empty if provided.")
+
+            instance = self.instance
+            existing_types = set()
+            if instance:
+                existing_types = set(OfferDetails.objects.filter(
+                    offer_id=instance.id).values_list('offer_type', flat=True))
+
+            for item in value:
+                if not isinstance(item, dict):
+                    raise serializers.ValidationError(
+                        "Each detail item must be an object.")
+
+                offer_type = item.get('offer_type')
+
+                if not offer_type:
+                    raise serializers.ValidationError(
+                        "Each provided detail must contain an 'offer_type'.")
+
+                if existing_types and offer_type not in existing_types:
+                    raise serializers.ValidationError(
+                        f"The provided offer_type '{offer_type}' does not match any existing detail tiers for this offer."
+                    )
+
             return value
 
         required_types = {'basic', 'standard', 'premium'}
@@ -207,7 +243,8 @@ class OfferWriteSerializer(serializers.ModelSerializer):
         return offer
 
     def update(self, instance, validated_data):
-        """Updates specified fields and merges patched details into existing tiers without touching others."""
+        """Updates specified fields and merges patched details 
+        into existing tiers without touching others."""
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get(
             'description', instance.description)

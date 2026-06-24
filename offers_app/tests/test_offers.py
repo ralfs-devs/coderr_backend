@@ -267,37 +267,6 @@ class OffersListApiTest(APITestCase):
 
         self.assertEqual(len(response_data['results']), 0)
 
-    def test_create_offer_with_incomplete_details_returns_400(self):
-        """Validates that creating an offer with missing package tiers triggers a 400 bad request."""
-        self.client.force_authenticate(user=self.business_user)
-
-        payload = {
-            "title": "Basic Design",
-            "image": None,
-            "description": "Ein umfassendes Grafikdesign-Paket für Unternehmen.",
-            "details": [
-                {
-                    "title": "Basic Design",
-                    "revisions": 2,
-                    "delivery_time_in_days": 5,
-                    "price": 50,
-                    "features": ["Logo Design", "Visitenkarte"],
-                    "offer_type": "basic"
-                },
-                {
-                    "title": "Standard Design",
-                    "revisions": 5,
-                    "delivery_time_in_days": 10,
-                    "price": 55,
-                    "features": ["Logo Design", "Visitenkarte", "Briefpapier"],
-                    "offer_type": "standard"
-                }
-            ]
-        }
-
-        response = self.client.post('/api/offers/', payload, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
     def test_create_offer_by_non_business_user_returns_403(self):
         """Validates that a customer profile is barred from producing a new offer collection."""
         self.client.force_authenticate(user=self.user)

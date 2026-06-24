@@ -117,25 +117,61 @@ class OfferUpdateApiTest(BaseOfferTestMixin, APITestCase):
         self.assertEqual(basic_tier["price"], 120)
 
     def test_patch_offer_unauthenticated(self):
-        """Blocks modifications when credentials parameters are missing from request scope headers."""
+        """Blocks modifications when credentials parameters 
+        are missing from request scope headers."""
         response = self.client.patch(
             self.url, {"title": "Hack"}, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_patch_offer_forbidden_wrong_user(self):
-        """Throws explicit 403 exceptions when unauthorized users attempt resource mutations."""
+        """Throws explicit 403 exceptions when unauthorized 
+        users attempt resource mutations."""
         self.client.force_authenticate(user=self.other_user)
         response = self.client.patch(
             self.url, {"title": "Hack"}, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_patch_offer_not_found(self):
-        """Validates that update calls to non-existent primary keys yield a 404 response."""
+        """Validates that update calls 
+        to non-existent primary keys yield a 404 response."""
         self.client.force_authenticate(user=self.business_user)
         invalid_url = reverse('offers-detail', kwargs={'pk': 99999})
         response = self.client.patch(
             invalid_url, {"title": "Ghost"}, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_patch_fails_if_offer_type_is_missing_in_details(self):
+        """Verify that a PATCH request returns 400 if the offer_type is missing in the details list.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        self.client.login(username='biz_man', password='password')
+
+        url = f"/api/offers/{self.offer.id}/"
+
+        payload = {
+            "title": "Updated Grafikdesign-Paket 288",
+            "details": [
+                {
+                    "title": "Basic Design Updated 71",
+                    "revisions": 10,
+                    "delivery_time_in_days": 4,
+                    "price": 465,
+                    "features": [
+                        "Dillan",
+                        "Vito"
+                    ]
+                }
+            ]
+        }
+
+        response = self.client.patch(url, data=payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class OfferDeleteApiTest(BaseOfferTestMixin, APITestCase):

@@ -19,10 +19,14 @@ class BaseInfoSerializer(serializers.Serializer):
     """Serializer for system-wide aggregation metrics.
 
     Attributes:
-        review_count (IntegerField): Total number of reviews across the platform.
-        average_rating (FloatField): Cumulative average rating score of all businesses.
-        business_profile_count (IntegerField): Total number of registered business profiles.
-        offer_count (IntegerField): Total number of active offers available.
+        review_count (IntegerField): 
+            Total number of reviews across the platform.
+        average_rating (FloatField): 
+            Cumulative average rating score of all businesses.
+        business_profile_count (IntegerField): 
+            Total number of registered business profiles.
+        offer_count (IntegerField): 
+            Total number of active offers available.
     """
 
     review_count = serializers.IntegerField()

@@ -6,22 +6,36 @@ from offers_app.models import OfferDetails
 
 
 class Order(models.Model):
-    """Represents a finalized customer purchase instance from a specific tier package.
+    """Represents a finalized customer purchase instance 
+            from a specific tier package.
 
     Attributes:
-        STATUS_CHOICES (list): Choice list defining legal state options for active tasks.
-        offer_detail (ForeignKey): Reference to the purchased blueprint item configuration.
-        customer_user (ForeignKey): Reference to the consumer who purchased the order.
-        business_user (ForeignKey): Reference to the merchant responsible for executing the order.
-        title (CharField): Snapshot title of the service package at checkout.
-        revisions (PositiveIntegerField): Maximum allowed corrections allocated.
-        delivery_time_in_days (PositiveIntegerField): Expected delivery countdown limit.
-        price (DecimalField): Frozen financial snapshot total at payment timestamp.
-        features (JSONField): Collection of features bundled into the contract tier.
-        offer_type (CharField): Identifier indicating basic, standard, or premium tier types.
-        status (CharField): State tracker monitoring execution progress.
-        created_at (DateTimeField): Timestamp recording initial financial authorization.
-        updated_at (DateTimeField): Timestamp recording latest structural state mutation.
+        STATUS_CHOICES (list): 
+        Choice list defining legal state options for active tasks.
+        offer_detail (ForeignKey):
+        Reference to the purchased blueprint item configuration.
+        customer_user (ForeignKey): 
+        Reference to the consumer who purchased the order.
+        business_user (ForeignKey): 
+        Reference to the merchant responsible for executing the order.
+        title (CharField): 
+        Snapshot title of the service package at checkout.
+        revisions (PositiveIntegerField): 
+        Maximum allowed corrections allocated.
+        delivery_time_in_days (PositiveIntegerField): 
+        Expected delivery countdown limit.
+        price (DecimalField): 
+        Frozen financial snapshot total at payment timestamp.
+        features (JSONField): 
+        Collection of features bundled into the contract tier.
+        offer_type (CharField): 
+        Identifier indicating basic, standard, or premium tier types.
+        status (CharField): 
+        State tracker monitoring execution progress.
+        created_at (DateTimeField): 
+        Timestamp recording initial financial authorization.
+        updated_at (DateTimeField): 
+        Timestamp recording latest structural state mutation.
     """
 
     STATUS_CHOICES = [
@@ -65,9 +79,12 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        """Returns string representation of the order containing identifier and customer name.
+        """Returns string representation of the order 
+            containing identifier and customer name.
 
         Returns:
-            str: Normalized descriptor tracking transactional identification strings.
+            str: Normalized descriptor 
+                tracking transactional identification strings.
         """
-        return f"Order {self.id} - {self.title} (Customer: {self.customer_user.username})"
+        return (f"Order {self.id} - {self.title} "
+                f"Customer: {self.customer_user.username}")

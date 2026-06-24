@@ -6,15 +6,23 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Reviews(models.Model):
-    """Data model representing a customer review for a specific business profile.
+    """
+    Data model representing a customer review 
+        for a specific business profile.
 
     Attributes:
-        business_user (ForeignKey): The business user profile being reviewed.
-        reviewer (ForeignKey): The customer user profile creating the review.
-        rating (IntegerField): The score given to the business, from 1 to 5.
-        description (TextField): Optional text commentary provided by the reviewer.
-        created_at (DateTimeField): Timestamp when the review was created.
-        updated_at (DateTimeField): Timestamp when the review was last updated.
+        business_user (ForeignKey): 
+            The business user profile being reviewed.
+        reviewer (ForeignKey): 
+            The customer user profile creating the review.
+        rating (IntegerField): 
+            The score given to the business, from 1 to 5.
+        description (TextField):
+            Optional text commentary provided by the reviewer.
+        created_at (DateTimeField):
+            Timestamp when the review was created.
+        updated_at (DateTimeField):
+            Timestamp when the review was last updated.
     """
 
     business_user = models.ForeignKey(
@@ -37,7 +45,9 @@ class Reviews(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['business_user', 'reviewer'], name='unique_customer_review_per_business')
+                fields=['business_user',
+                        'reviewer'],
+                name='unique_customer_review_per_business')
         ]
         verbose_name = 'Review'
 

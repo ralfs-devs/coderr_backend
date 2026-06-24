@@ -4,7 +4,7 @@ Overrides the primary database setup with an in-memory SQLite configuration
 and optimizes performance by using a faster password hasher for testing.
 """
 
-from .settings import *  # noqa: F401, F403
+from core.settings import *  # noqa: F401, F403
 
 DATABASES = {
     'default': {

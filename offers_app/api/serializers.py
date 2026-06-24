@@ -4,7 +4,8 @@ from offers_app.models import Offers, OfferDetails
 
 
 class OfferDetailsSerializer(serializers.ModelSerializer):
-    """Serializer designed for full read/write operations on individual offer detail tiers."""
+    """Serializer designed for full read/write operations
+        on individual offer detail tiers."""
 
     price = serializers.DecimalField(
         max_digits=10,
@@ -29,7 +30,8 @@ class OfferDetailsSerializer(serializers.ModelSerializer):
 
 
 class OfferReadSerializer(serializers.ModelSerializer):
-    """Serializer optimized for retrieving and displaying complex offer structures."""
+    """Serializer optimized for 
+        retrieving and displaying complex offer structures."""
 
     min_price = serializers.SerializerMethodField()
     min_delivery_time = serializers.SerializerMethodField()
@@ -47,19 +49,22 @@ class OfferReadSerializer(serializers.ModelSerializer):
         ]
 
     def get_details(self, obj):
-        """Compiles minimal identifier and unique routing resource links for related tiers.
+        """Compiles minimal identifier and unique routing resource links
+             for related tiers.
 
         Args:
             obj (Offers): The parent offer instance being processed.
 
         Returns:
-            list[dict]: A list containing strictly the target database id and absolute routing string.
+            list[dict]: A list containing strictly the target database id 
+                and absolute routing string.
         """
         request = self.context.get('request')
         return [
             {
                 "id": d.id,
-                "url": reverse('single-offer-details', kwargs={'pk': d.pk}, request=request)
+                "url": reverse('single-offer-details',
+                               kwargs={'pk': d.pk}, request=request)
             }
             for d in obj.details.all()
         ]
@@ -78,7 +83,8 @@ class OfferReadSerializer(serializers.ModelSerializer):
         return int(price) if price is not None else None
 
     def get_min_delivery_time(self, obj):
-        """Determines the shortest delivery timeline variant from associated sets.
+        """Determines the shortest delivery timeline variant 
+            from associated sets.
 
         Args:
             obj (Offers): The parent offer instance being processed.
@@ -87,11 +93,14 @@ class OfferReadSerializer(serializers.ModelSerializer):
             int or None: Smallest entry tracking duration in full days.
         """
         from django.db.models import Min
-        return obj.details.aggregate(Min('delivery_time_in_days'))['delivery_time_in_days__min']
+        return (obj.details.aggregate(
+            Min('delivery_time_in_days'))['delivery_time_in_days__min']
+        )
 
 
 class OfferListSerializer(OfferReadSerializer):
-    """Serializer explicitly designed for the strict paginated list view requirements."""
+    """Serializer explicitly designed 
+        for the strict paginated list view requirements."""
 
     user_details = serializers.SerializerMethodField()
 
@@ -108,10 +117,13 @@ class OfferListSerializer(OfferReadSerializer):
         """Compiles relative routing resource links for related tiers.
 
         Args:
-            obj (Offers): The parent offer instance being processed.
+            obj (Offers):
+                The parent offer instance being processed.
 
         Returns:
-            list[dict]: A list containing strictly the target database id and relative routing string.
+            list[dict]:
+                A list containing strictly 
+                    the target database id and relative routing string.
         """
         return [
             {
@@ -122,13 +134,16 @@ class OfferListSerializer(OfferReadSerializer):
         ]
 
     def get_user_details(self, obj):
-        """Resolves connected ownership records to pull foundational user metadata.
+        """Resolves connected ownership records 
+            to pull foundational user metadata.
 
         Args:
-            obj (Offers): The parent offer instance containing the owner reference.
+            obj (Offers): The parent offer instance 
+                containing the owner reference.
 
         Returns:
-            dict: Structured dataset defining names and system identification keys.
+            dict: Structured dataset 
+                defining names and system identification keys.
         """
         profile = getattr(obj.owner, 'profile', None)
         return {
@@ -217,7 +232,8 @@ class OfferWriteSerializer(serializers.ModelSerializer):
 
                 if existing_types and offer_type not in existing_types:
                     raise serializers.ValidationError(
-                        f"The provided offer_type '{offer_type}' does not match any existing detail tiers for this offer."
+                        f"The provided offer_type '{offer_type}' does not "
+                        "match any existing detail tiers for this offer."
                     )
 
             return value
@@ -228,13 +244,15 @@ class OfferWriteSerializer(serializers.ModelSerializer):
 
         if set(provided_types) != required_types or len(provided_types) != 3:
             raise serializers.ValidationError(
-                "An offer must contain exactly three detail packages: basic, standard, and premium."
+                "An offer must contain exactly three detail packages: "
+                "basic, standard, and premium."
             )
 
         return value
 
     def create(self, validated_data):
-        """Saves parent core parameters and creates dependent data collections."""
+        """Saves parent core parameters 
+            and creates dependent data collections."""
         owner = self.context['request'].user
         details_data = validated_data.pop('details', [])
         offer = Offers.objects.create(owner=owner, **validated_data)
@@ -255,7 +273,9 @@ class OfferWriteSerializer(serializers.ModelSerializer):
 
         if details_data:
             incoming_details_map = {
-                item['offer_type']: item for item in details_data if 'offer_type' in item
+                item['offer_type']:
+                    item for item in details_data
+                    if 'offer_type' in item
             }
             existing_details = OfferDetails.objects.filter(
                 offer_id=instance.pk)

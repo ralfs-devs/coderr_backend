@@ -14,17 +14,30 @@ class BaseInfoApiTests(APITestCase):
     """Test suite for the BaseInfoView metrics endpoint."""
 
     def setUp(self):
-        """Sets up test users, offers, and reviews data before each test execution."""
+        """Sets up test users, offers
+            and reviews data before each test execution."""
         self.url = reverse('base_info')
 
         self.biz1 = User.objects.create_user(
-            username='biz1', type='business', password='pw1', email='b1@b.com')
+            username='biz1',
+            type='business',
+            password='pw1',
+            email='b1@b.com')
         self.biz2 = User.objects.create_user(
-            username='biz2', type='business', password='pw2', email='b2@b.com')
+            username='biz2',
+            type='business',
+            password='pw2',
+            email='b2@b.com')
         self.cust1 = User.objects.create_user(
-            username='cust1', type='customer', password='pw3', email='c1@c.com')
+            username='cust1',
+            type='customer',
+            password='pw3',
+            email='c1@c.com')
         self.cust2 = User.objects.create_user(
-            username='cust2', type='customer', password='pw4', email='c2@c.com')
+            username='cust2',
+            type='customer',
+            password='pw4',
+            email='c2@c.com')
         Offers.objects.create(
             title='O1', owner=self.biz1, description='Test 1')
         Offers.objects.create(
@@ -45,7 +58,8 @@ class BaseInfoApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_base_info_aggregation(self):
-        """Validates that the database values are aggregated and calculated correctly."""
+        """Validates that the database values 
+            are aggregated and calculated correctly."""
         response = self.client.get(self.url)
 
         self.assertEqual(response.data['review_count'], 3)
@@ -54,7 +68,8 @@ class BaseInfoApiTests(APITestCase):
         self.assertEqual(response.data['offer_count'], 3)
 
     def test_empty_data(self):
-        """Ensures the endpoint gracefully falls back to zeroed values when database tables are empty."""
+        """Ensures the endpoint gracefully falls back to zeroed values 
+            when database tables are empty."""
         Reviews.objects.all().delete()
         Offers.objects.all().delete()
         User.objects.filter(type='business').delete()

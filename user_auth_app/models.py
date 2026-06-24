@@ -1,4 +1,7 @@
-"""Database models and query managers establishing customized database structures for core user accounts."""
+"""
+Database models and query managers establishing 
+    customized database structures for core user accounts.
+"""
 
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
@@ -10,15 +13,27 @@ class CustomUserManager(BaseUserManager):
     Provides helper methods to create regular users and superusers.
     """
 
-    def create_user(self, username, email, password, type=None, **extra_fields):
-        """Creates and saves a User instance containing explicit security traits.
+    def create_user(self,
+                    username,
+                    email,
+                    password,
+                    type=None,
+                    **extra_fields):
+        """
+        Creates and saves a User instance 
+        containing explicit security traits.
 
         Args:
-            username (str): The distinct identifying string handle.
-            email (str): The target mailbox address.
-            password (str): The unhashed source credential string.
-            type (str): The foundational operation profile classification.
-            **extra_fields: Variable configuration mappings passed to schema instances.
+            username (str): 
+                The distinct identifying string handle.
+            email (str): 
+                The target mailbox address.
+            password (str): 
+                The unhashed source credential string.
+            type (str): 
+                The foundational operation profile classification.
+            **extra_fields: 
+                Variable configuration mappings passed to schema instances.
 
         Returns:
             User: The freshly generated database entry instance.
@@ -44,10 +59,14 @@ class CustomUserManager(BaseUserManager):
         """Creates and saves a superuser with the given details.
 
         Args:
-            username (str): The unique username.
-            email (str): The user's email address.
-            password (str): The user's password.
-            **extra_fields: Additional fields, defaults is_staff/is_superuser to True.
+            username (str): 
+                The unique username.
+            email (str): 
+                The user's email address.
+            password (str): 
+                The user's password.
+            **extra_fields: 
+                Additional fields, defaults is_staff/is_superuser to True.
 
         Returns:
             User: The created superuser instance.
@@ -56,7 +75,11 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
 
-        return self.create_user(username, email, password, type=None ** extra_fields)
+        return self.create_user(username,
+                                email,
+                                password,
+                                type=None,
+                                ** extra_fields)
 
 
 class User(AbstractBaseUser, PermissionsMixin):

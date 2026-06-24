@@ -11,16 +11,26 @@ class Profile(models.Model):
     """Represents the extended profile information for a user.
 
     Attributes:
-        user (OneToOneField): Link to the AUTH_USER_MODEL, acts as the primary key.
-        first_name (CharField): The user's first name.
-        last_name (CharField): The user's last name.
-        file (ImageField): Path to the user's profile picture.
-        uploaded_at (DateTimeField): Optional timestamp recording the latest asset update.
-        location (CharField): The user's location.
-        tel (CharField): The user's telephone number.
-        description (TextField): A short biography or description.
-        working_hours (CharField): The user's availability or working hours.
-        created_at (DateTimeField): Automatically set timestamp when the profile is created.
+        user (OneToOneField): 
+            Link to the AUTH_USER_MODEL, acts as the primary key.
+        first_name (CharField): 
+            The user's first name.
+        last_name (CharField): 
+            The user's last name.
+        file (ImageField): 
+            Path to the user's profile picture.
+        uploaded_at (DateTimeField): 
+            Optional timestamp recording the latest asset update.
+        location (CharField): 
+            The user's location.
+        tel (CharField): 
+            The user's telephone number.
+        description (TextField): 
+            A short biography or description.
+        working_hours (CharField): 
+            The user's availability or working hours.
+        created_at (DateTimeField): 
+            Automatically set timestamp when the profile is created.
     """
 
     user = models.OneToOneField(
@@ -44,7 +54,8 @@ class Profile(models.Model):
         """Returns the string representation of the profile.
 
         Returns:
-            str: Normalized identification name referencing the core user record.
+            str: Normalized identification name 
+                    referencing the core user record.
         """
         return f"Profile for {self.user.username}"
 

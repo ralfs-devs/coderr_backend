@@ -1,6 +1,7 @@
 """URL Configuration for User Authentication.
 
-This module defines the URL patterns for handling user registration and login requests. 
+This module defines the URL patterns for handling user registration 
+and login requests. 
 It maps specific URL routes to their corresponding class-based views
 
 URL Patterns:
@@ -9,9 +10,17 @@ URL Patterns:
 """
 
 from django.urls import path
-from .views import RegistrationView, LoginView
+from user_auth_app.api.views import LoginView, RegistrationView
 
 urlpatterns = [
-    path('registration/', RegistrationView.as_view(), name='user_registration'),
-    path('login/', LoginView.as_view(), name='user_login'),
+    path(
+        'registration/',
+        RegistrationView.as_view(),
+        name='user_registration'
+    ),
+    path(
+        'login/',
+        LoginView.as_view(),
+        name='user_login'
+    )
 ]

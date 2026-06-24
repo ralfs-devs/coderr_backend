@@ -42,8 +42,9 @@ class IsBusinessUser(permissions.BasePermission):
             view (View): The view instance handling the request.
 
         Returns:
-            bool: True if the user is authenticated and has the type 'business',
-            False otherwise.
+            bool: 
+                True if the user is authenticated and has the type 'business',
+                False otherwise.
         """
         if not request.user.is_authenticated:
             return False
@@ -63,7 +64,8 @@ class IsBusinessUser(permissions.BasePermission):
             obj (Model): The object instance being accessed.
 
         Returns:
-            bool: True if the object's business_user_id matches the requesting user's ID,
+            bool: True if the object's business_user_id
+                    matches the requesting user's ID,
             False otherwise.
         """
         return obj.business_user_id == request.user.id

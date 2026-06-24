@@ -1,4 +1,5 @@
-"""API endpoints handling incoming network requests for user account creation and validation sessions."""
+"""API endpoints handling incoming network requests
+    for user account creation and validation sessions."""
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -6,22 +7,28 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 
-from .serializers import RegistrationSerializer, LoginSerializer
+from user_auth_app.api.serializers import (RegistrationSerializer,
+                                           LoginSerializer)
 
 
 class RegistrationView(APIView):
-    """Endpoint for onboarding new system users and establishing authentic session keys."""
+    """Endpoint for onboarding new system users 
+        and establishing authentic session keys."""
 
     permission_classes = [AllowAny]
 
     def post(self, request):
-        """Processes payload properties to generate a distinct user entity and issues an API token.
+        """Processes payload properties 
+            to generate a distinct user entity and issues an API token.
 
         Args:
-            request (Request): Framework context vehicle carrying account data values.
+            request (Request): 
+                Framework context vehicle carrying account data values.
 
         Returns:
-            Response: Framed network payload mapping core profile fields and the authorization key.
+            Response: 
+                Framed network payload mapping core profile fields 
+                    and the authorization key.
         """
         serializer = RegistrationSerializer(data=request.data)
 
@@ -39,18 +46,23 @@ class RegistrationView(APIView):
 
 
 class LoginView(APIView):
-    """Endpoint verifying network connection keys against identity stores to unlock session paths."""
+    """Endpoint verifying network connection keys 
+        against identity stores to unlock session paths."""
 
     permission_classes = [AllowAny]
 
     def post(self, request):
-        """Validates provided lookup properties to authenticate records and return active access keys.
+        """Validates provided lookup properties 
+            to authenticate records and return active access keys.
 
         Args:
-            request (Request): Framework context vehicle containing profile tracking strings.
+            request (Request): 
+                Framework context vehicle containing profile tracking strings.
 
         Returns:
-            Response: Framed network payload reflecting core account metrics and session signatures.
+            Response: 
+                Framed network payload reflecting core account metrics 
+                    and session signatures.
         """
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():

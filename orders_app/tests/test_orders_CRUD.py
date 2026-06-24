@@ -83,18 +83,25 @@ class OrderListApiTest(APITestCase):
 
 
 class OrderCreateApiTest(APITestCase):
-    """Handles verification and side effects checking during standard creation workflows.
+    """Handles verification and side effects 
+        checking during standard creation workflows.
 
     Attributes:
-        business (User): A business user profile acting as the core owner.
-        customer (User): A standard user profile acting as the prospective buyer.
-        offer (Offers): The high-level framework asset profile.
-        detail (OfferDetails): Specialized sub-tier blueprint configurations.
-        url (str): Target routing configuration address for order collections.
+        business (User): 
+            A business user profile acting as the core owner.
+        customer (User):
+            A standard user profile acting as the prospective buyer.
+        offer (Offers):
+            The high-level framework asset profile.
+        detail (OfferDetails):
+            Specialized sub-tier blueprint configurations.
+        url (str):
+            Target routing configuration address for order collections.
     """
 
     def setUp(self):
-        """Constructs target business entities and tier detail mock attributes."""
+        """Constructs target business entities 
+            and tier detail mock attributes."""
         self.business = User.objects.create_user(
             username='biz', password='pw', email='biz@mail.de', type='business')
         self.customer = User.objects.create_user(
@@ -113,7 +120,8 @@ class OrderCreateApiTest(APITestCase):
         self.url = reverse('orders')
 
     def test_create_order_success(self):
-        """Validates successful entry instantiation when a customer inputs valid parameters."""
+        """Validates successful entry instantiation 
+            when a customer inputs valid parameters."""
         self.client.force_authenticate(user=self.customer)
         data = {'offer_detail_id': self.detail.id}
 
@@ -125,19 +133,22 @@ class OrderCreateApiTest(APITestCase):
         self.assertEqual(order.price, 150.00)
 
     def test_create_order_unauthenticated(self):
-        """Assures anonymous requests are rejected with a standard 401 error code."""
+        """Assures anonymous requests are rejected 
+            with a standard 401 error code."""
         data = {'offer_detail_id': self.detail.id}
         response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_order_invalid_data(self):
-        """Confirms payload errors yield appropriate standard server rejection paths."""
+        """Confirms payload errors 
+            yield appropriate standard server rejection paths."""
         self.client.force_authenticate(user=self.customer)
         response = self.client.post(self.url, {}, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_order_not_found(self):
-        """Checks handling behaviors if payload elements describe non-existent primary records."""
+        """Checks handling behaviors 
+            if payload elements describe non-existent primary records."""
         self.client.force_authenticate(user=self.customer)
         response = self.client.post(
             self.url, {'offer_detail_id': 999}, format='json')
@@ -145,19 +156,27 @@ class OrderCreateApiTest(APITestCase):
 
 
 class OrderPatchApiTest(APITestCase):
-    """Enforces authorization profiles during state-transition or tracking updates.
+    """Enforces authorization profiles 
+        during state-transition or tracking updates.
 
     Attributes:
-        business (User): Authoritative vendor profile managing the project state.
-        customer (User): Standard consumer user holding purchasing histories.
-        offer (Offers): The underlying service item description mapping.
-        detail (OfferDetails): Structural financial pricing configurations.
-        order (Order): Active transactional pipeline track record element.
-        url (str): Unique detail identifier endpoint lookup reference.
+        business (User): 
+            Authoritative vendor profile managing the project state.
+        customer (User): 
+            Standard consumer user holding purchasing histories.
+        offer (Offers): 
+            The underlying service item description mapping.
+        detail (OfferDetails): 
+            Structural financial pricing configurations.
+        order (Order): 
+            Active transactional pipeline track record element.
+        url (str): 
+            Unique detail identifier endpoint lookup reference.
     """
 
     def setUp(self):
-        """Initializes existing order entities across active production metrics."""
+        """Initializes existing order entities 
+            across active production metrics."""
         self.business = User.objects.create_user(
             username='biz',
             type='business',
@@ -194,7 +213,8 @@ class OrderPatchApiTest(APITestCase):
         self.url = reverse('orders-detail', kwargs={'pk': self.order.id})
 
     def test_patch_status_success(self):
-        """Guarantees the responsible business user can progress specific workflow states."""
+        """Guarantees the responsible business user 
+            can progress specific workflow states."""
         self.client.force_authenticate(user=self.business)
         response = self.client.patch(
             self.url, {'status': 'completed'}, format='json')
@@ -205,7 +225,8 @@ class OrderPatchApiTest(APITestCase):
         self.assertEqual(self.order.status, 'completed')
 
     def test_patch_status_forbidden_for_customer(self):
-        """Restricts customer users from bypassing execution tracking fields."""
+        """Restricts customer users 
+            from bypassing execution tracking fields."""
         self.client.force_authenticate(user=self.customer)
         response = self.client.patch(
             self.url, {'status': 'completed'}, format='json')
@@ -213,7 +234,8 @@ class OrderPatchApiTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_patch_status_forbidden_for_other_business(self):
-        """Verifies completely independent business users cannot modify other providers orders."""
+        """Verifies completely independent business users 
+            cannot modify other providers orders."""
         other_business = User.objects.create_user(
             username='other_biz',
             type='business',
@@ -227,7 +249,8 @@ class OrderPatchApiTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_patch_status_not_found(self):
-        """Assures attempts directed at missing records produce standard missing errors."""
+        """Assures attempts directed at missing records 
+            produce standard missing errors."""
         self.client.force_authenticate(user=self.business)
         wrong_url = reverse('orders-detail', kwargs={'pk': 999})
         response = self.client.patch(
@@ -237,14 +260,21 @@ class OrderPatchApiTest(APITestCase):
 
 
 class OrderDeleteApiTest(APITestCase):
-    """Verifies constraint profiles and destructive operations safety boundaries.
+    """Verifies constraint profiles 
+        and destructive operations safety boundaries.
 
     Attributes:
-        staff (User): Administrative clearance profile authorizing forced object deletions.
-        business (User): Standard merchant account owning structural configurations.
-        customer (User): Regular consumer account context holder.
-        order (Order): Targeted system transaction instance planned for destruction.
-        url (str): Destination routing indicator mapping individual instances.
+        staff (User):
+            Administrative clearance profile
+                authorizing forced object deletions.
+        business (User):
+            Standard merchant account owning structural configurations.
+        customer (User):
+            Regular consumer account context holder.
+        order (Order):
+            Targeted system transaction instance planned for destruction.
+        url (str):
+            Destination routing indicator mapping individual instances.
     """
 
     def setUp(self):
@@ -271,7 +301,8 @@ class OrderDeleteApiTest(APITestCase):
         self.url = reverse('orders-detail', kwargs={'pk': self.order.id})
 
     def test_delete_order_success(self):
-        """Confirms that internal staff users can delete order records effectively."""
+        """Confirms that internal staff users 
+            can delete order records effectively."""
         self.client.force_authenticate(user=self.staff)
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -284,13 +315,15 @@ class OrderDeleteApiTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_order_forbidden_customer(self):
-        """Ensures customer users face full denial on order deletion attempts."""
+        """Ensures customer users 
+            face full denial on order deletion attempts."""
         self.client.force_authenticate(user=self.customer)
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_order_not_found(self):
-        """Asserts actions querying missing keys properly exit with a 404 response."""
+        """Asserts actions querying missing keys
+            properly exit with a 404 response."""
         self.client.force_authenticate(user=self.staff)
         url = reverse('orders-detail', kwargs={'pk': 999})
         response = self.client.delete(url)

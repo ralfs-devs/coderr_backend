@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from django.contrib.auth import get_user_model
 from offers_app.models import Offers
-from .test_base import BaseOfferTestMixin
+from offers_app.tests.test_base import BaseOfferTestMixin
 
 
 class OfferDetailApiTest(BaseOfferTestMixin, APITestCase):

@@ -1,4 +1,5 @@
-"""Tests isolating behavior and payload schemas of standalone package configurations."""
+"""Tests isolating behavior and payload schemas
+        of standalone package configurations."""
 
 from rest_framework.reverse import reverse
 from rest_framework import status
@@ -16,29 +17,52 @@ class SingleOfferDetailApiTest(APITestCase):
     """Test suite handling retrieval validation for explicit element packages.
 
     Attributes:
-        user (User): A business user profile instance used to own and query resources.
-        offer (Offers): A baseline core project offer instance.
-        detail (OfferDetails): Individual sub-tier configuration metadata records.
-        url (str): Target routing path location for specific detail endpoints.
+        user (User):
+            A business user profile instance used to own and query resources.
+        offer (Offers):
+            A baseline core project offer instance.
+        detail (OfferDetails):
+            Individual sub-tier configuration metadata records.
+        url (str):
+            Target routing path location for specific detail endpoints.
     """
 
     def setUp(self):
-        """Prepares database instances and populates multi-tiered test offers."""
+        """Prepares database instances 
+            and populates multi-tiered test offers."""
         self.user = User.objects.create_user(
-            username='testuser', type='business', password='pw', email='test@mail.de')
+            username='testuser',
+            type='business',
+            password='pw',
+            email='test@mail.de')
         self.offer = Offers.objects.create(
             owner=self.user, title='Grafikdesign-Paket')
         self.detail = OfferDetails.objects.create(
-            offer=self.offer, title='Basic Offer', revisions=2, delivery_time_in_days=5, price=50, offer_type='basic')
+            offer=self.offer, title='Basic Offer',
+            revisions=2,
+            delivery_time_in_days=5,
+            price=50,
+            offer_type='basic')
         OfferDetails.objects.create(
-            offer=self.offer, title='Standard Offer', revisions=4, delivery_time_in_days=10, price=100, offer_type='standard')
+            offer=self.offer,
+            title='Standard Offer',
+            revisions=4,
+            delivery_time_in_days=10,
+            price=100,
+            offer_type='standard')
         OfferDetails.objects.create(
-            offer=self.offer, title='Premium Offer', revisions=6, delivery_time_in_days=15, price=150, offer_type='premium')
+            offer=self.offer,
+            title='Premium Offer',
+            revisions=6,
+            delivery_time_in_days=15,
+            price=150,
+            offer_type='premium')
         self.url = reverse('single-offer-details',
                            kwargs={'pk': self.offer.pk})
 
     def test_get_detail_success(self):
-        """Validates content attribute equivalence under authenticated execution."""
+        """Validates content attribute equivalence 
+            under authenticated execution."""
         self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -46,19 +70,22 @@ class SingleOfferDetailApiTest(APITestCase):
         self.assertEqual(response.data['title'], self.detail.title)
 
     def test_get_detail_unauthenticated(self):
-        """Verifies that an unauthenticated request raises a 401 unauthorized status."""
+        """Verifies that an unauthenticated request 
+            raises a 401 unauthorized status."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_detail_not_found(self):
-        """Validates that hitting missing endpoints securely produces 404 outputs."""
+        """Validates that hitting missing endpoints 
+            securely produces 404 outputs."""
         self.client.force_authenticate(user=self.user)
         invalid_url = reverse('single-offer-details', kwargs={'pk': 9999})
         response = self.client.get(invalid_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_get_offer_structure_with_user_id(self):
-        """Validates complete hierarchy tree nested layouts, calculated mins, and schema formats."""
+        """Validates complete hierarchy tree nested layouts,
+            calculated mins, and schema formats."""
         self.client.force_authenticate(user=self.user)
 
         url = reverse('offers-detail', kwargs={'pk': self.offer.pk})
@@ -82,7 +109,9 @@ class SingleOfferDetailApiTest(APITestCase):
         self.assertEqual(data['min_delivery_time'], 5)
 
     def test_single_offer_detail_exact_structure_and_order(self):
-        """Verifies that the single offer detail endpoint returns the exact key sequence, content types, and has no extra fields."""
+        """Verifies that the single offer detail endpoint 
+            returns the exact key sequence, content types
+                and has no extra fields."""
         self.client.force_authenticate(user=self.user)
 
         url = reverse('single-offer-details', kwargs={'pk': self.detail.pk})
@@ -100,7 +129,10 @@ class SingleOfferDetailApiTest(APITestCase):
         self.assertEqual(
             list(response_data.keys()),
             expected_keys,
-            msg=f"Unexpected or unknown Items in offer detail: {list(response_data.keys())}"
+            msg=(
+                "Unexpected or unknown Items in offer detail: "
+                f"{list(response_data.keys())}"
+            )
         )
 
         self.assertIsInstance(response_data['id'], int)
@@ -112,10 +144,11 @@ class SingleOfferDetailApiTest(APITestCase):
         self.assertIsInstance(response_data['offer_type'], str)
 
     def test_patch_offer_details_by_offer_type_success(self):
-        """Verify that a PATCH request updates an internal tier using its offer type identifier.
+        """Verify that a PATCH request updates an internal tier
+            using its offer type identifier.
 
-        Ensures that partial updates mutate existing child records without creating
-        unwanted duplicates or modifying separate sub-tiers.
+        Ensures that partial updates mutate existing child records 
+        without creating unwanted duplicates or modifying separate sub-tiers.
         """
         patch_payload = {
             "title": "Updated Grafikdesign-Paket",

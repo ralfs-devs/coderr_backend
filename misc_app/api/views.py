@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 
 from offers_app.models import Offers
 from reviews_app.models import Reviews
-from .serializers import BaseInfoSerializer
+from misc_app.api.serializers import BaseInfoSerializer
 
 User = get_user_model()
 
@@ -18,7 +18,8 @@ class BaseInfoView(APIView):
     """API endpoint that returns aggregated platform statistics.
 
     Attributes:
-        permission_classes (list): List of permission classes applied to the view.
+        permission_classes (list):
+            List of permission classes applied to the view.
     """
 
     permission_classes = [AllowAny]
@@ -32,7 +33,8 @@ class BaseInfoView(APIView):
             **kwargs (dict): Arbitrary keyword arguments.
 
         Returns:
-            Response: DRF Response object containing serialized aggregation data.
+            Response: DRF Response object 
+                containing serialized aggregation data.
         """
         review_stats = Reviews.objects.aggregate(
             count=Count('id'),
@@ -40,10 +42,14 @@ class BaseInfoView(APIView):
         )
 
         data = {
-            'review_count': review_stats['count'] or 0,
-            'average_rating': float(review_stats['avg'] or 0.0),
-            'business_profile_count': User.objects.filter(type='business').count(),
-            'offer_count': Offers.objects.count()
+            'review_count':
+            review_stats['count'] or 0,
+            'average_rating':
+            float(review_stats['avg'] or 0.0),
+            'business_profile_count':
+            User.objects.filter(type='business').count(),
+            'offer_count':
+            Offers.objects.count()
         }
 
         serializer = BaseInfoSerializer(data)

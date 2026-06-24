@@ -20,7 +20,8 @@ class OffersFilter(filters.FilterSet):
         fields = ['creator_id', 'min_price', 'max_delivery_time']
 
     def filter_by_min_price(self, queryset, name, value):
-        """Filters offers ensuring the calculated lowest tier price is greater or equal.
+        """Filters offers 
+            ensuring the calculated lowest tier price is greater or equal.
 
         Args:
             queryset (QuerySet): The initial offers dataset.
@@ -37,7 +38,8 @@ class OffersFilter(filters.FilterSet):
         ).filter(calculated_min_price__gte=value)
 
     def filter_by_max_delivery_time(self, queryset, name, value):
-        """Filters offers ensuring the calculated shortest delivery time is less or equal.
+        """Filters offers ensuring
+            the calculated shortest delivery time is less or equal.
 
         Args:
             queryset (QuerySet): The initial offers dataset.

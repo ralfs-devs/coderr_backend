@@ -11,20 +11,34 @@ User = get_user_model()
 
 
 class OffersListApiTest(APITestCase):
-    """Test suite targeting group operations, registration restrictions, and collection formatting.
+    """Test suite targeting 
+    group operations, 
+    registration restrictions
+    and collection formatting.
 
     Attributes:
-        user (User): A test user with standard non-business consumer privileges.
-        business_user (User): A test user explicitly assigned to the business segment profile.
-        valid_payload (dict): Standardized, complete structural JSON payload for testing mutations.
-        url (str): The routing lookup address mapped to list and creation endpoint collection hooks.
-        offer (Offers): A baseline persistency record representing existing content elements.
+        user (User): 
+            A test user with standard non-business consumer privileges.
+        business_user (User): 
+            A test user explicitly assigned to the business segment profile.
+        valid_payload (dict): 
+            Standardized, complete structural JSON payload 
+                for testing mutations.
+        url (str): 
+            The routing lookup address.
+        offer (Offers): 
+            A baseline persistency record
+                representing existing content elements.
     """
 
     def setUp(self):
-        """Establishes target fixtures, base mock accounts, and standard payloads before runs."""
+        """Establishes target fixtures, base mock accounts
+            and standard payloads before runs."""
         self.user = User.objects.create_user(
-            username='j_doe', email='jdoe@example.com', password='password', type='customer')
+            username='j_doe',
+            email='jdoe@example.com',
+            password='password',
+            type='customer')
 
         self.business_user = User.objects.create_user(
             username='biz_user',
@@ -37,12 +51,24 @@ class OffersListApiTest(APITestCase):
             "title": "Grafikdesign-Paket",
             "description": "Ein umfassendes Grafikdesign-Paket.",
             "details": [
-                {"title": "Basic", "revisions": 1, "delivery_time_in_days": 1,
-                 "price": 100, "features": [], "offer_type": "basic"},
-                {"title": "Standard", "revisions": 2, "delivery_time_in_days": 2,
-                 "price": 200, "features": [], "offer_type": "standard"},
-                {"title": "Premium", "revisions": 3, "delivery_time_in_days": 3,
-                 "price": 300, "features": [], "offer_type": "premium"}
+                {"title": "Basic",
+                 "revisions": 1,
+                 "delivery_time_in_days": 1,
+                 "price": 100,
+                 "features": [],
+                 "offer_type": "basic"},
+                {"title": "Standard",
+                 "revisions": 2,
+                 "delivery_time_in_days": 2,
+                 "price": 200,
+                 "features": [],
+                 "offer_type": "standard"},
+                {"title": "Premium",
+                 "revisions": 3,
+                 "delivery_time_in_days": 3,
+                 "price": 300,
+                 "features": [],
+                 "offer_type": "premium"}
             ]
         }
         self.url = reverse('offers')
@@ -53,22 +79,36 @@ class OffersListApiTest(APITestCase):
             description="Professionelles Website-Design..."
         )
 
-        OfferDetails.objects.create(offer=self.offer, title="Basic", revisions=2,
-                                    delivery_time_in_days=7, price=100, offer_type='basic')
-        OfferDetails.objects.create(offer=self.offer, title="Standard", revisions=5,
-                                    delivery_time_in_days=14, price=250, offer_type='standard')
-        OfferDetails.objects.create(offer=self.offer, title="Premium", revisions=10,
-                                    delivery_time_in_days=21, price=500, offer_type='premium')
+        OfferDetails.objects.create(offer=self.offer,
+                                    title="Basic",
+                                    revisions=2,
+                                    delivery_time_in_days=7,
+                                    price=100,
+                                    offer_type='basic')
+        OfferDetails.objects.create(offer=self.offer,
+                                    title="Standard",
+                                    revisions=5,
+                                    delivery_time_in_days=14,
+                                    price=250,
+                                    offer_type='standard')
+        OfferDetails.objects.create(offer=self.offer,
+                                    title="Premium",
+                                    revisions=10,
+                                    delivery_time_in_days=21,
+                                    price=500,
+                                    offer_type='premium')
 
     def test_get_offers_list_status_200(self):
-        """Verifies that an unauthenticated client receives HTTP 200 OK when requesting listings."""
+        """Verifies that an unauthenticated client 
+            receives HTTP 200 OK when requesting listings."""
         url = reverse('offers')
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_offers_list_bad_request(self):
-        """Verifies that improper input inside filter arguments raises a 400 validation response."""
+        """Verifies that improper input inside filter arguments 
+            raises a 400 validation response."""
         url = reverse('offers')
 
         response = self.client.get(url, {'min_price': 'abc'})
@@ -76,7 +116,8 @@ class OffersListApiTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_offer_success(self):
-        """Validates successful insertion sequences when triggered by matching business accounts."""
+        """Validates successful insertion sequences 
+            when triggered by matching business accounts."""
         self.client.force_authenticate(user=self.business_user)
         response = self.client.post(
             self.url, self.valid_payload, format='json')
@@ -88,7 +129,8 @@ class OffersListApiTest(APITestCase):
         self.assertEqual(new_offer.title, self.valid_payload['title'])
 
     def test_create_offer_unauthenticated_returns_401(self):
-        """Confirms that anonymous client submission attempts trigger instant 401 rejections."""
+        """Confirms that anonymous client submission attempts 
+            trigger instant 401 rejections."""
         self.client.force_authenticate(user=None)
 
         response = self.client.post(
@@ -131,7 +173,8 @@ class OffersListApiTest(APITestCase):
 
     def test_offers_list_exact_structure_and_order(self):
         """Verifies that the paginated response 
-        matches the exact key sequence, content types, and has no extra fields."""
+        matches the exact key sequence, content types
+            and has no extra fields."""
         response = self.client.get(self.url, {'page_size': 1})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -180,7 +223,8 @@ class OffersListApiTest(APITestCase):
                 self.assertEqual(
                     list(detail.keys()),
                     expected_detail_keys,
-                    msg=f"Unexpected fields in details (e.g. 'url'): {list(detail.keys())}"
+                    msg=("Unexpected fields in details "
+                         f"(e.g. 'url'): {list(detail.keys())}")
                 )
                 self.assertIsInstance(detail['id'], int)
 
@@ -189,8 +233,8 @@ class OffersListApiTest(APITestCase):
             self.assertEqual(
                 list(offer['user_details'].keys()),
                 expected_user_keys,
-                msg=(f"Unerwartete oder falsch sortierte Felder in user_details: "
-                     f"{list(offer['user_details'].keys())}")
+                msg=(f"Unerwartete oder falsch sortierte Felder in "
+                     f"user_details: {list(offer['user_details'].keys())}")
             )
             self.assertIsInstance(offer['user_details']['first_name'], str)
             self.assertIsInstance(offer['user_details']['last_name'], str)
@@ -227,7 +271,7 @@ class OffersListApiTest(APITestCase):
         response_data = response.json()
         self.assertIn('results', response_data)
 
-    def test_offers_list_filter_max_delivery_time_invalid_returns_bad_request(self):
+    def test_offers_list_filter_max_deliv_time_inv_ret_bad_request(self):
         """Ensures that an invalid non-numeric max_delivery_time value safely 
         returns HTTP 400 Bad Request as JSON."""
         response = self.client.get(

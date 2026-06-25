@@ -3,8 +3,12 @@ Viewsets handling transactional evaluation workflows, permissions checks
     and individual customer review operations.
 """
 
+from rest_framework.filters import OrderingFilter
 from rest_framework import viewsets, permissions as rf_permissions, status
 from rest_framework.response import Response
+
+from django_filters.rest_framework import DjangoFilterBackend
+
 from reviews_app.models import Reviews
 from reviews_app.api.serializers import ReviewsSerializer
 from core.permissions import IsReviewOwner, IsCustomerUser
@@ -24,6 +28,27 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
     queryset = Reviews.objects.all()
     serializer_class = ReviewsSerializer
+    permission_classes = [rf_permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ['business_user_id', 'reviewer_id']
+    ordering_fields = ['updated_at', 'rating']
+
+    def get_queryset(self):
+        """Filters the native queryset based on expected query parameters.
+
+        Returns:
+            QuerySet: Evaluated and filtered data block.
+        """
+        queryset = super().get_queryset()
+        business_user = self.request.query_params.get('business_user')
+        reviewer = self.request.query_params.get('reviewer')
+
+        if business_user is not None:
+            queryset = queryset.filter(business_user_id=business_user)
+        if reviewer is not None:
+            queryset = queryset.filter(reviewer_id=reviewer)
+
+        return queryset
 
     def get_permissions(self):
         """Instantiates and returns the list of permissions

@@ -181,3 +181,126 @@ class ReviewsCRUDTests(APITestCase):
         url = reverse('reviews-detail', kwargs={'pk': self.review.id})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_list_reviews_filters_by_business_user(self):
+        """Verify that the list endpoint returns 
+            all matching business_user records and excludes others.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        self.client.force_authenticate(user=self.cust_user)
+
+        third_cust = User.objects.create_user(
+            username='cust3_unique_for_biz_test',
+            email='cust3_unique_biz@test.de',
+            password='pw',
+            type='customer'
+        )
+
+        Reviews.objects.create(
+            business_user=self.biz_user,
+            reviewer=third_cust,
+            rating=5,
+            description="Second unique review for target business"
+        )
+
+        second_biz = User.objects.create_user(
+            username='biz2_unique_for_filter_test',
+            email='biz2_unique_filter@test.de',
+            password='pw',
+            type='business'
+        )
+
+        Reviews.objects.create(
+            business_user=second_biz,
+            reviewer=self.other_cust_user,
+            rating=3,
+            description="Review for a different business"
+        )
+
+        target_id = self.biz_user.id
+        response = self.client.get(self.list_url, {"business_user": target_id})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        results = response.data
+        if "results" in results:
+            results = results["results"]
+
+        expected_reviews = Reviews.objects.filter(business_user_id=target_id)
+        expected_dict = {review.id: review for review in expected_reviews}
+
+        self.assertEqual(len(results), len(expected_dict))
+
+        for review_data in results:
+            review_id = review_data["id"]
+            self.assertIn(review_id, expected_dict)
+
+            db_review = expected_dict[review_id]
+            self.assertEqual(
+                review_data["business_user"], db_review.business_user_id)
+            self.assertEqual(review_data["reviewer"], db_review.reviewer_id)
+            self.assertEqual(review_data["rating"], db_review.rating)
+            self.assertEqual(review_data["description"], db_review.description)
+
+    def test_list_reviews_filters_by_reviewer(self):
+        """Verify that the list endpoint returns 
+            all matching reviewer_id records and excludes others.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        self.client.force_authenticate(user=self.cust_user)
+
+        second_biz = User.objects.create_user(
+            username='biz_unique_for_filter_test',
+            email='biz_unique_filter@test.de',
+            password='pw',
+            type='business'
+        )
+
+        Reviews.objects.create(
+            business_user=second_biz,
+            reviewer=self.cust_user,
+            rating=5,
+            description="Second unique review by target reviewer"
+        )
+
+        Reviews.objects.create(
+            business_user=self.biz_user,
+            reviewer=self.other_cust_user,
+            rating=3,
+            description="Review by a different reviewer"
+        )
+
+        target_id = self.cust_user.id
+        response = self.client.get(self.list_url, {"reviewer_id": target_id})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        results = response.data
+        if "results" in results:
+            results = results["results"]
+
+        expected_reviews = Reviews.objects.filter(reviewer_id=target_id)
+        expected_dict = {review.id: review for review in expected_reviews}
+
+        self.assertEqual(len(results), len(expected_dict))
+
+        for review_data in results:
+            review_id = review_data["id"]
+            self.assertIn(review_id, expected_dict)
+
+            db_review = expected_dict[review_id]
+            self.assertEqual(
+                review_data["business_user"], db_review.business_user_id)
+            self.assertEqual(review_data["reviewer"], db_review.reviewer_id)
+            self.assertEqual(review_data["rating"], db_review.rating)
+            self.assertEqual(review_data["description"], db_review.description)

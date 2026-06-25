@@ -258,6 +258,17 @@ class OrderPatchApiTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_patch_non_existent_order_unhappy_path(self):
+        """Validates that a patch request to a non-existent order ID
+            correctly yields a 404 status code even if the user 
+            lacks business permissions.
+        """
+        self.client.force_authenticate(user=self.customer)
+        wrong_url = reverse('orders-detail', kwargs={'pk': 53})
+        response = self.client.patch(
+            wrong_url, {'status': 'completed'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
 
 class OrderDeleteApiTest(APITestCase):
     """Verifies constraint profiles 

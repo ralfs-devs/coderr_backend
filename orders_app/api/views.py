@@ -30,6 +30,13 @@ class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     queryset = Order.objects.all()
 
+    def initial(self, request, *args, **kwargs):
+        """Validates the target record existence 
+            before evaluating permission definitions."""
+        if self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
+            get_object_or_404(Order, pk=kwargs.get('pk'))
+        super().initial(request, *args, **kwargs)
+
     def get_permissions(self):
         """Deduces user role limitations based on requested action routines.
 
@@ -80,6 +87,11 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(order)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def partial_update(self, request, *args, **kwargs):
+        """Ensures the resource existence is validated before object permissions block the request."""
+        get_object_or_404(Order, pk=kwargs.get('pk'))
+        return super().partial_update(request, *args, **kwargs)
 
     def get_queryset(self):
         """Filters listings so 
